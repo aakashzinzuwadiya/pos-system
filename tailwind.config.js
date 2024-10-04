@@ -20,4 +20,9 @@ module.exports = {
     },
   },
   plugins: [],
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "jsx": "react"
+  }
 };

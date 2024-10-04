@@ -24,7 +24,7 @@ const App: React.FC = () => {
           </div>
         </nav>
 
-        <div className="container mx-auto p-4">
+        <div className="container">
           <Routes>
             <Route path="/" element={<PosPage />} />
             <Route path="/admin" element={<AdminPage />} />

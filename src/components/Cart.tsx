@@ -1,8 +1,10 @@
 // src/components/Cart.tsx
 import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 interface CartItem {
-  id: number;
+  id: string; // Change from `number` to `string`
   name: string;
   price: number;
   quantity: number;
@@ -10,74 +12,81 @@ interface CartItem {
 
 interface CartProps {
   cartItems: CartItem[];
-  onIncrease: (id: number) => void;
-  onDecrease: (id: number) => void;
+  onIncrease: (id: string) => void; // Update `id` to `string`
+  onDecrease: (id: string) => void; // Update `id` to `string`
+  onRemove: (id: string) => void;   // Update `id` to `string`
 }
 
-const Cart: React.FC<CartProps> = ({ cartItems, onIncrease, onDecrease }) => {
+const Cart: React.FC<CartProps> = ({ cartItems, onIncrease, onDecrease, onRemove }) => {
   const currencySymbol = process.env.REACT_APP_CURRENCY_SYMBOL || '$';
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-4 border border-gray-200 h-full">
-      <h2 className="text-xl font-medium mb-4 text-primary">Cart</h2>
-
-      {/* Table Container with Fixed Height */}
-      <div className="relative overflow-hidden h-[300px]">
-        {/* Create a separate header section */}
-        <table className="w-full table-fixed border-collapse">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="border px-4 py-2 text-left w-1/5">Item</th>
-              <th className="border px-4 py-2 text-left w-1/5">Price</th>
-              <th className="border px-4 py-2 text-left w-1/5">Quantity</th>
-              <th className="border px-4 py-2 text-left w-1/5">Total</th>
-              <th className="border px-4 py-2 text-left w-1/5">Actions</th>
-            </tr>
-          </thead>
-        </table>
-
-        {/* Scrollable table body */}
-        <div className="overflow-y-auto h-[250px]">
-          <table className="w-full table-fixed border-collapse">
-            <tbody>
-              {cartItems.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-100 transition-colors">
-                  <td className="border px-4 py-2 w-1/5">{item.name}</td>
-                  <td className="border px-4 py-2 w-1/5">
-                    {currencySymbol}
-                    {item.price}
-                  </td>
-                  <td className="border px-4 py-2 w-1/5">{item.quantity}</td>
-                  <td className="border px-4 py-2 w-1/5">
-                    {currencySymbol}
-                    {item.price * item.quantity}
-                  </td>
-                  <td className="border px-4 py-2 w-1/5">
-                    <button
-                      className="bg-secondary text-white px-3 py-1 rounded-md hover:bg-green-600 text-sm"
-                      onClick={() => onIncrease(item.id)}
-                    >
-                      +
-                    </button>
-                    <button
-                      className="bg-secondary text-white px-3 py-1 rounded-md ml-2 hover:bg-green-600 text-sm"
-                      onClick={() => onDecrease(item.id)}
-                    >
-                      -
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+    <div className="w-full h-full flex flex-col border border-gray-300 rounded-lg shadow-md bg-white">
+      {/* Headers Row */}
+      <div className="grid grid-cols-6 gap-4 p-2 font-semibold text-gray-700 bg-gray-100 border-b border-gray-300">
+        <div className="col-span-2">Item</div>
+        <div className="text-center">Quantity</div>
+        <div className="text-center">Price</div>
+        <div className="text-center">Total Price</div>
+        <div className="text-center">Actions</div>
       </div>
 
-      {/* Total Amount Display */}
-      <div className="text-right font-bold text-base mt-4 text-primary">
-        Total: {currencySymbol}
-        {total.toFixed(2)}
+      {/* Cart Items List - Scrollable Section */}
+      <div className="flex-grow overflow-y-auto p-4">
+        {cartItems.length === 0 ? (
+          <p className="text-center text-gray-600">Your cart is empty.</p>
+        ) : (
+          <ul className="space-y-2">
+            {cartItems.map((item) => (
+              <li
+                key={item.id}
+                className="grid grid-cols-6 gap-4 items-center bg-gray-50 p-2 rounded-md shadow-sm"
+              >
+                {/* Item Name */}
+                <div className="col-span-2">
+                  <h3 className="font-medium text-gray-800">{item.name}</h3>
+                </div>
+
+                {/* Quantity */}
+                <div className="text-center text-gray-600">
+                  {item.quantity}
+                </div>
+
+                {/* Price */}
+                <div className="text-center text-gray-800">
+                  {currencySymbol}{item.price.toFixed(2)}
+                </div>
+
+                {/* Total Price (Quantity x Price) */}
+                <div className="text-center text-gray-800 font-semibold">
+                  {currencySymbol}{(item.price * item.quantity).toFixed(2)}
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-center items-center space-x-2">
+                  <button
+                    onClick={() => onIncrease(item.id)}
+                    className="px-2 py-1 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition"
+                  >
+                    +
+                  </button>
+                  <button
+                    onClick={() => onDecrease(item.id)}
+                    className="px-2 py-1 bg-red-500 text-white rounded-md shadow hover:bg-red-600 transition"
+                  >
+                    -
+                  </button>
+                  <button
+                    onClick={() => onRemove(item.id)}
+                    className="px-2 py-1 bg-gray-500 text-white rounded-md shadow hover:bg-gray-600 transition"
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

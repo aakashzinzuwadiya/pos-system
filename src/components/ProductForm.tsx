@@ -1,69 +1,49 @@
 // src/components/ProductForm.tsx
 import React, { useState, useEffect } from 'react';
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-}
+import { Product } from '../types'; // Ensure you're importing from `src/types`
 
 interface ProductFormProps {
-  onSave: (product: Product) => void;
-  editingProduct?: Product | null;
+  onSave: (product: Omit<Product, 'id'>) => void; // Use the same Product type, without the `id` since it's auto-generated
+  editingProduct: Product | null;
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => {
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState<number | ''>(''); // Use number or empty string for controlled input
+  const [name, setName] = useState(editingProduct?.name || '');
+  const [price, setPrice] = useState(editingProduct?.price || 0);
 
   useEffect(() => {
     if (editingProduct) {
       setName(editingProduct.name);
       setPrice(editingProduct.price);
-    } else {
-      setName('');
-      setPrice('');
     }
   }, [editingProduct]);
 
-  const handleSave = () => {
-    if (name && price !== '') {
-      const newProduct = {
-        id: editingProduct ? editingProduct.id : Date.now(),
-        name,
-        price: Number(price), // Convert price to number
-      };
-      onSave(newProduct);
-      setName('');
-      setPrice('');
-    }
+  const handleSubmit = () => {
+    const productData = { name, price };
+    onSave(productData); // Pass product data to parent
   };
 
   return (
-    <div className="p-4 bg-gray-100 rounded-lg shadow-md mb-4">
-      <h2 className="text-xl font-bold mb-4">{editingProduct ? 'Edit Product' : 'Add Product'}</h2>
+    <div className="p-4">
       <div className="mb-4">
+        <label className="block text-gray-700">Product Name</label>
         <input
           type="text"
-          placeholder="Product Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-md"
+          className="w-full p-2 border border-gray-300 rounded"
         />
       </div>
       <div className="mb-4">
+        <label className="block text-gray-700">Price({process.env.REACT_APP_CURRENCY_SYMBOL})</label>
         <input
           type="number"
-          placeholder="Product Price"
           value={price}
-          onChange={(e) => setPrice(e.target.value === '' ? '' : Number(e.target.value))} // Convert string to number or set to empty
-          className="w-full p-2 border border-gray-300 rounded-md"
+          onChange={(e) => setPrice(parseFloat(e.target.value))}
+          className="w-full p-2 border border-gray-300 rounded"
         />
       </div>
-      <button
-        onClick={handleSave}
-        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-      >
+      <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 rounded">
         {editingProduct ? 'Update Product' : 'Add Product'}
       </button>
     </div>
