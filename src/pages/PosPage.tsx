@@ -20,19 +20,20 @@ const PosPage: React.FC = () => {
   const printRef = useRef<HTMLDivElement | null>(null); // Reference for the print container
   const currencySymbol = process.env.REACT_APP_CURRENCY_SYMBOL || '$';
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const productsList = await getProducts();
-      setProducts(productsList);
-    };
+  const fetchProducts = async () => {
+    const productsList = await getProducts();
+    setProducts(productsList);
+  };
 
-    const fetchTransactions = async () => {
-      const transactionsList = await getTransactions();
-      const sortedTransactions = transactionsList
-      .filter((t) => !t.isDeleted)
-      .sort((a, b) => b.date.toMillis() - a.date.toMillis());
-      setTransactions(sortedTransactions);
-    };
+  const fetchTransactions = async () => {
+    const transactionsList = await getTransactions();
+    const sortedTransactions = transactionsList
+    .filter((t) => !t.isDeleted)
+    .sort((a, b) => b.date.toMillis() - a.date.toMillis());
+    setTransactions(sortedTransactions);
+  };
+  
+  useEffect(() => {
 
     fetchProducts();
     fetchTransactions();
@@ -105,6 +106,7 @@ const PosPage: React.FC = () => {
       setCashReceived(0);
       setChange(0);
       setShowCashModal(false);
+      fetchTransactions();
     } catch (error) {
       console.error('Failed to process payment:', error);
     }
