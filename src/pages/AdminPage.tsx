@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import ProductForm from '../components/ProductForm';
 import ProductList from '../components/ProductList';
 import TransactionList from '../components/TransactionList';
-import TransactionDetailsModal from '../components/TransactionDetailsModal'; // Import the new component
+import TransactionDetailsModal from '../components/TransactionDetailsModal';
 import Modal from '../components/Modal';
 import { getProducts, addProduct, updateProduct, deleteProduct, getTransactions, updateTransaction } from '../firebaseService';
 import { Product, Transaction } from '../types';
@@ -19,14 +19,20 @@ const AdminPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false); // State for transaction modal
 
+  // Fetch products from Firestore
   const fetchProducts = async () => {
     const productsList = await getProducts();
     setProducts(productsList);
   };
 
+  // Fetch transactions from Firestore and sort by date (latest first)
   const fetchTransactions = async () => {
     const transactionsList = await getTransactions();
-    setTransactions(transactionsList.filter((t) => !t.isDeleted));
+    // Filter out deleted transactions and sort by date in descending order
+    const sortedTransactions = transactionsList
+      .filter((t) => !t.isDeleted)
+      .sort((a, b) => b.date.toMillis() - a.date.toMillis());
+    setTransactions(sortedTransactions);
   };
 
   useEffect(() => {
@@ -73,12 +79,9 @@ const AdminPage: React.FC = () => {
 
   const handleDeleteTransaction = async (id: string) => {
     try {
-      // Find the transaction to update
       const transaction = transactions.find((t) => t.id === id);
       if (transaction) {
-        // Update the `isDeleted` field to true
         await updateTransaction(id, { isDeleted: true });
-        // Update state to reflect the change without re-fetching
         setTransactions((prev) =>
           prev.map((t) => (t.id === id ? { ...t, isDeleted: true } : t))
         );
@@ -104,24 +107,26 @@ const AdminPage: React.FC = () => {
   return (
     <>
       <NavBar />
-      <div className="h-screen flex items-center justify-center bg-admin-page bg-cover bg-center overflow-hidden m-0 mb-5">
+      <div className="h-screen p-4 flex items-center justify-center bg-admin-page bg-cover bg-center overflow-hidden m-0 mb-5">
         <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
-        <div className="relative z-10 bg-white/90 border border-gray-200 rounded-lg shadow-lg w-4/5 h-full p-4 pb-10 sm:pb-6 lg:pb-10 flex flex-col">
+        <div className="relative z-10 bg-white/90 border border-gray-200 rounded-lg shadow-lg h-full p-4 mb-10 sm:pb-6 lg:pb-10 flex flex-col">
           <div className="flex flex-col lg:flex-row h-full space-y-4 lg:space-y-0 lg:space-x-4">
             <div className="w-full lg:w-1/2 flex flex-col overflow-auto">
               <ProductList
                 products={products}
                 onEdit={handleEditProduct}
                 onDelete={handleDeleteProduct}
-                onAddProduct={handleOpenModal} />
+                onAddProduct={handleOpenModal}
+              />
             </div>
 
             <div className="w-full lg:w-1/2 flex flex-col overflow-auto">
               <TransactionList
                 transactions={transactions}
                 onShow={handleShowTransaction}
-                onDelete={handleDeleteTransaction} />
+                onDelete={handleDeleteTransaction}
+              />
             </div>
           </div>
 
@@ -133,9 +138,11 @@ const AdminPage: React.FC = () => {
           <TransactionDetailsModal
             transaction={selectedTransaction}
             isOpen={isTransactionModalOpen}
-            onClose={() => setIsTransactionModalOpen(false)} />
+            onClose={() => setIsTransactionModalOpen(false)}
+          />
         </div>
-      </div></>
+      </div>
+    </>
   );
 };
 

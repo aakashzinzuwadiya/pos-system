@@ -23,4 +23,5 @@ export interface Transaction {
     paymentMethod: string; // Add the paymentMethod property
     orderId?: number; // Add orderId field
     isDeleted?: boolean; // New field for soft delete
+    change?: number; // Add the `change` property to the Transaction type
 }

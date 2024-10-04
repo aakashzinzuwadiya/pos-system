@@ -1,36 +1,45 @@
-// src/components/NavBar.tsx
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from 'context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { auth } from 'firebaseConfig';
 
 const NavBar: React.FC = () => {
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const { user, isAdmin } = useAuth(); // `useAuth` should now have `user` and `isAdmin` properties
 
   const handleLogout = async () => {
-    await auth.signOut();
-    navigate('/login');
+    try {
+      await auth.signOut(); // Replace with your actual auth signOut method
+      navigate('/login'); // Redirect to login page after logout
+    } catch (error) {
+      console.error('Failed to logout', error);
+    }
   };
 
   return (
-    <nav className="flex justify-between items-center p-4 bg-gray-800 text-white">
-      <div>
-        <Link to={'/pos'}>Pos System</Link>
-      </div>
-      <div className="flex items-center space-x-4">
-        {user ? (
-          <>
-            {isAdmin ? <span className="font-semibold">Hello, Admin</span> : <span className="font-semibold">Hello, User</span>}
-            <button onClick={handleLogout} className="px-4 py-2 bg-red-500 rounded-lg hover:bg-red-600 transition">
-              Logout
-            </button>
-          </>
-        ) : (
-          <button onClick={() => navigate('/login')} className="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition">
-            Login
-          </button>
+    <nav className="bg-blue-600 p-4 text-white flex justify-between items-center">
+      {/* Navigation Links */}
+      <div className="flex space-x-4">
+        
+        {/* Conditionally render Admin Dashboard link for admin users */}
+        {isAdmin && (
+          <Link to="/admin" className="text-lg font-semibold">
+            Admin Dashboard
+          </Link>
         )}
+        
+        {/* Show POS Link for all users */}
+        <Link to="/pos" className="text-lg font-semibold">
+          POS
+        </Link>
+      </div>
+
+      {/* User Section */}
+      <div className="flex items-center space-x-4">
+        {user && <span>Welcome, {user.email}</span>}
+        <button onClick={handleLogout} className="bg-red-500 px-4 py-2 rounded-lg">
+          Logout
+        </button>
       </div>
     </nav>
   );

@@ -37,7 +37,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
       </div>
 
       {/* Product Items List */}
-      <div className="flex-grow overflow-y-auto">
+      <div className="flex-grow overflow-y-auto mb-4">
         {products.length === 0 ? (
           <p className="text-center flex-grow">No products available.</p>
         ) : (
