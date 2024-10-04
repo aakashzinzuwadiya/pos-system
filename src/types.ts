@@ -22,4 +22,5 @@ export interface Transaction {
     date: Timestamp; // Date of the transaction
     paymentMethod: string; // Add the paymentMethod property
     orderId?: number; // Add orderId field
+    isDeleted?: boolean; // New field for soft delete
 }

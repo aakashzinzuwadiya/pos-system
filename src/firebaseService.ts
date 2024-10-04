@@ -1,5 +1,5 @@
 // src/firebaseService.ts
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, DocumentData, Timestamp, orderBy, query, limit } from "firebase/firestore";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, DocumentData, Timestamp, orderBy, query, limit, getDoc } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 import { Product, Transaction } from "./types"; // Import Product type
 
@@ -84,5 +84,23 @@ export const getTransactions = async (): Promise<Transaction[]> => {
   } catch (error) {
     console.error('Error fetching transactions:', error);
     throw error;
+  }
+};
+
+export const updateTransaction = async (id: string, data: Partial<Transaction>): Promise<void> => {
+  const transactionDoc = doc(db, 'transactions', id);
+  await updateDoc(transactionDoc, data);
+};
+
+export const getUserRole = async (uid: string): Promise<string | null> => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (userDoc.exists()) {
+      return userDoc.data()?.role || null; // Return the role if it exists
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching user role:', error);
+    return null;
   }
 };

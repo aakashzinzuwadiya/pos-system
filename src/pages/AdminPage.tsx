@@ -5,10 +5,11 @@ import ProductList from '../components/ProductList';
 import TransactionList from '../components/TransactionList';
 import TransactionDetailsModal from '../components/TransactionDetailsModal'; // Import the new component
 import Modal from '../components/Modal';
-import { getProducts, addProduct, updateProduct, deleteProduct, getTransactions } from '../firebaseService';
+import { getProducts, addProduct, updateProduct, deleteProduct, getTransactions, updateTransaction } from '../firebaseService';
 import { Product, Transaction } from '../types';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import NavBar from 'components/NavBar';
 
 const AdminPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -18,17 +19,17 @@ const AdminPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false); // State for transaction modal
 
+  const fetchProducts = async () => {
+    const productsList = await getProducts();
+    setProducts(productsList);
+  };
+
+  const fetchTransactions = async () => {
+    const transactionsList = await getTransactions();
+    setTransactions(transactionsList.filter((t) => !t.isDeleted));
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      const productsList = await getProducts();
-      setProducts(productsList);
-    };
-
-    const fetchTransactions = async () => {
-      const transactionsList = await getTransactions();
-      setTransactions(transactionsList);
-    };
-
     fetchProducts();
     fetchTransactions();
   }, []);
@@ -71,8 +72,23 @@ const AdminPage: React.FC = () => {
   };
 
   const handleDeleteTransaction = async (id: string) => {
-    // Implement the function to delete a transaction from Firestore
-    setTransactions((prev) => prev.filter((transaction) => transaction.id !== id));
+    try {
+      // Find the transaction to update
+      const transaction = transactions.find((t) => t.id === id);
+      if (transaction) {
+        // Update the `isDeleted` field to true
+        await updateTransaction(id, { isDeleted: true });
+        // Update state to reflect the change without re-fetching
+        setTransactions((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, isDeleted: true } : t))
+        );
+        toast.success('Transaction deleted successfully!');
+        fetchTransactions();
+      }
+    } catch (error) {
+      toast.error('Failed to delete transaction.');
+      console.error("Error deleting transaction:", error);
+    }
   };
 
   const handleShowTransaction = (transaction: Transaction) => {
@@ -86,41 +102,40 @@ const AdminPage: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-admin-page bg-cover bg-center overflow-hidden m-0 mb-5">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+    <>
+      <NavBar />
+      <div className="h-screen flex items-center justify-center bg-admin-page bg-cover bg-center overflow-hidden m-0 mb-5">
+        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
-      <div className="relative z-10 bg-white/90 border border-gray-200 rounded-lg shadow-lg w-4/5 h-full p-4 pb-10 sm:pb-6 lg:pb-10 flex flex-col">
-        <div className="flex flex-col lg:flex-row h-full space-y-4 lg:space-y-0 lg:space-x-4">
-          <div className="w-full lg:w-1/2 flex flex-col overflow-auto">
-            <ProductList
-              products={products}
-              onEdit={handleEditProduct}
-              onDelete={handleDeleteProduct}
-              onAddProduct={handleOpenModal}
-            />
+        <div className="relative z-10 bg-white/90 border border-gray-200 rounded-lg shadow-lg w-4/5 h-full p-4 pb-10 sm:pb-6 lg:pb-10 flex flex-col">
+          <div className="flex flex-col lg:flex-row h-full space-y-4 lg:space-y-0 lg:space-x-4">
+            <div className="w-full lg:w-1/2 flex flex-col overflow-auto">
+              <ProductList
+                products={products}
+                onEdit={handleEditProduct}
+                onDelete={handleDeleteProduct}
+                onAddProduct={handleOpenModal} />
+            </div>
+
+            <div className="w-full lg:w-1/2 flex flex-col overflow-auto">
+              <TransactionList
+                transactions={transactions}
+                onShow={handleShowTransaction}
+                onDelete={handleDeleteTransaction} />
+            </div>
           </div>
 
-          <div className="w-full lg:w-1/2 flex flex-col overflow-auto">
-            <TransactionList
-              transactions={transactions}
-              onShow={handleShowTransaction}
-              onDelete={handleDeleteTransaction}
-            />
-          </div>
+          <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingProduct ? 'Edit Product' : 'Add Product'}>
+            <ProductForm onSave={handleAddProduct} editingProduct={editingProduct} />
+          </Modal>
+
+          {/* Transaction Details Modal */}
+          <TransactionDetailsModal
+            transaction={selectedTransaction}
+            isOpen={isTransactionModalOpen}
+            onClose={() => setIsTransactionModalOpen(false)} />
         </div>
-
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingProduct ? 'Edit Product' : 'Add Product'}>
-          <ProductForm onSave={handleAddProduct} editingProduct={editingProduct} />
-        </Modal>
-
-        {/* Transaction Details Modal */}
-        <TransactionDetailsModal
-          transaction={selectedTransaction}
-          isOpen={isTransactionModalOpen}
-          onClose={() => setIsTransactionModalOpen(false)}
-        />
-      </div>
-    </div>
+      </div></>
   );
 };
 
