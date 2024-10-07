@@ -1,7 +1,8 @@
 // src/firebaseService.ts
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, DocumentData, Timestamp, orderBy, query, limit, getDoc } from "firebase/firestore";
-import { db } from "./firebaseConfig";
-import { Product, Transaction } from "./types"; // Import Product type
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, orderBy, query, limit, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "./firebaseConfig";
+import { Product, Transaction, User } from "./types"; // Import Product type
+import { createUserWithEmailAndPassword, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 
 // Firestore collection references
 const productsCollection = collection(db, "products");
@@ -55,21 +56,8 @@ export const getProducts = async (): Promise<Product[]> => {
 export const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
   const transactionCollection = collection(db, 'transactions');
 
-  // Get the last transaction's orderId to calculate the next one
-  const q = query(transactionCollection, orderBy('orderId', 'desc'), limit(1));
-  const querySnapshot = await getDocs(q);
-
-  let nextOrderId = 1; // Default to 1 if no previous transactions exist
-  if (!querySnapshot.empty) {
-    const lastTransaction = querySnapshot.docs[0].data();
-    nextOrderId = (lastTransaction.orderId || 0) + 1;
-  }
-
-  // Add the orderId to the transaction
-  const newTransaction = { ...transaction, orderId: nextOrderId };
-
   // Add the new transaction to Firestore
-  const docRef = await addDoc(transactionCollection, newTransaction);
+  const docRef = await addDoc(transactionCollection, transaction);
   return docRef.id; // Return the document ID
 };
 
@@ -92,6 +80,13 @@ export const updateTransaction = async (id: string, data: Partial<Transaction>):
   await updateDoc(transactionDoc, data);
 };
 
+// Function to delete a transaction from Firestore
+export const deleteTransaction = async (id: string): Promise<void> => {
+  const docRef = doc(db, 'transactions', id);
+  await deleteDoc(docRef);
+  console.log(`Transaction with ID: ${id} deleted successfully.`);
+};
+
 export const getUserRole = async (uid: string): Promise<string | null> => {
   try {
     const userDoc = await getDoc(doc(db, 'users', uid));
@@ -103,4 +98,65 @@ export const getUserRole = async (uid: string): Promise<string | null> => {
     console.error('Error fetching user role:', error);
     return null;
   }
+};
+
+// Fetch all users
+export const getUsers = async (): Promise<User[]> => {
+  const users: User[] = [];
+  const querySnapshot = await getDocs(collection(db, 'users')); // Replace with your Firebase Firestore collection
+
+  querySnapshot.forEach((doc) => {
+    const { id, ...data } = doc.data() as User; // Extract `id` from `data` if it exists
+    users.push({ id: doc.id, ...data }); // Use `doc.id` as the unique identifier
+  });
+
+  return users;
+};
+
+// Updated addUser function to create user in Firebase Authentication and Firestore
+export const addUser = async (user: Omit<User, 'id'> & { password: string }): Promise<string> => {
+  try {
+    // Create user in Firebase Authentication
+    const userCredential = await createUserWithEmailAndPassword(auth, user.email, user.password);
+    const userId = userCredential.user.uid;
+
+    // Create user in Firestore (without the password field)
+    const userData: Omit<User, 'id'> = {
+      email: user.email,
+      role: user.role,
+    };
+    await setDoc(doc(db, 'users', userId), userData);
+
+    return userId;
+  } catch (error) {
+    console.error('Failed to add user:', error);
+    throw error;
+  }
+};
+
+// Update an existing user
+export const updateUser = async (id: string, user: Omit<User, 'id'>) => {
+  const docRef = doc(db, 'users', id);
+  await updateDoc(docRef, user);
+};
+
+// Delete a user
+export const deleteUser = async (id: string) => {
+  const docRef = doc(db, 'users', id);
+  await deleteDoc(docRef);
+};
+
+// Function to update user password
+export const updateUserPassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+  const user = auth.currentUser;
+  if (!user || !user.email) {
+    throw new Error('User not authenticated');
+  }
+
+  // Re-authenticate the user
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  await reauthenticateWithCredential(user, credential);
+
+  // If re-authentication is successful, update the password
+  await updatePassword(user, newPassword);
 };

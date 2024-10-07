@@ -1,77 +1,31 @@
 // src/pages/PosPage.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import Cart from '../components/Cart';
 import Modal from '../components/Modal';
-import { getProducts, getTransactions, addTransaction } from '../firebaseService';
-import { Timestamp } from 'firebase/firestore';
-import { Product, CartItem, Transaction } from '../types';
 import NavBar from 'components/NavBar';
+import { usePos } from 'context/PosContext';
 
 const PosPage: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const {
+    products,
+    cart,
+    change,
+    addToCart,
+    increaseQuantity,
+    decreaseQuantity,
+    removeFromCart,
+    handleCashPayment,
+    handleCardPayment,
+    savedTransaction, // Access saved transaction from context
+  } = usePos();
   const [cashReceived, setCashReceived] = useState(0);
-  const [change, setChange] = useState(0);
   const [showCashModal, setShowCashModal] = useState(false);
-  const [showTransactionsModal, setShowTransactionsModal] = useState(false);
-  const [savedTransaction, setSavedTransaction] = useState<Transaction | null>(null);
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const printRef = useRef<HTMLDivElement | null>(null); // Reference for the print container
+  const [showTransactionModal, setShowTransactionModal] = useState(false); // New state for transaction modal
+  const [showChangeInModal, setShowChangeInModal] = useState(false); // State to control if the change should be shown in the modal
+
   const currencySymbol = process.env.REACT_APP_CURRENCY_SYMBOL || '$';
 
-  const fetchProducts = async () => {
-    const productsList = await getProducts();
-    setProducts(productsList);
-  };
-
-  const fetchTransactions = async () => {
-    const transactionsList = await getTransactions();
-    const sortedTransactions = transactionsList
-    .filter((t) => !t.isDeleted)
-    .sort((a, b) => b.date.toMillis() - a.date.toMillis());
-    setTransactions(sortedTransactions);
-  };
-  
-  useEffect(() => {
-
-    fetchProducts();
-    fetchTransactions();
-  }, []);
-
-  const handleAddToCart = (product: Product) => {
-    const existingItem = cart.find((item) => item.id === product.id);
-    if (existingItem) {
-      const updatedCart = cart.map((item) =>
-        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-      );
-      setCart(updatedCart);
-    } else {
-      const newItem: CartItem = { ...product, quantity: 1 };
-      setCart([...cart, newItem]);
-    }
-  };
-
-  const handleIncreaseQuantity = (id: string) => {
-    const updatedCart = cart.map((item) =>
-      item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-    );
-    setCart(updatedCart);
-  };
-
-  const handleDecreaseQuantity = (id: string) => {
-    const updatedCart = cart
-      .map((item) => (item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item))
-      .filter((item) => item.quantity > 0);
-    setCart(updatedCart);
-  };
-
-  const handleRemoveFromCart = (id: string) => {
-    const updatedCart = cart.filter((item) => item.id !== id);
-    setCart(updatedCart);
-  };
-
-  const handlePayment = async (paymentMethod: string) => {
+  const handlePayment = (paymentMethod: string) => {
     if (cart.length === 0) {
       alert('Cart is empty. Please add items to the cart before proceeding to payment.');
       return;
@@ -79,100 +33,28 @@ const PosPage: React.FC = () => {
 
     if (paymentMethod === 'Cash') {
       setShowCashModal(true);
-      return;
-    }
-
-    await processTransaction(paymentMethod);
-  };
-
-  const processTransaction = async (paymentMethod: string) => {
-    try {
-      const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
-
-      const transactionData: Omit<Transaction, 'id'> = {
-        items: cart,
-        totalAmount,
-        date: Timestamp.now(),
-        paymentMethod,
-        isDeleted: false,
-        change: paymentMethod === 'Cash' ? change : 0,
-      };
-
-      const transactionId = await addTransaction(transactionData);
-      const savedTransactionData: Transaction = { ...transactionData, id: transactionId };
-      setSavedTransaction(savedTransactionData);
-
-      setCart([]);
-      setCashReceived(0);
-      setChange(0);
-      setShowCashModal(false);
-      fetchTransactions();
-    } catch (error) {
-      console.error('Failed to process payment:', error);
+    } else if (paymentMethod === 'Card' || paymentMethod === 'Guest') {
+      handleCardPayment(paymentMethod);
+      setShowTransactionModal(true); // Show transaction modal after card payment
     }
   };
 
-  const handleCashPayment = () => {
-    const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
-    const calculatedChange = cashReceived - totalAmount;
-
-    if (calculatedChange < 0) {
-      alert(`Insufficient cash. Total amount is ${currencySymbol}${totalAmount.toFixed(2)}, but received only ${currencySymbol}${cashReceived.toFixed(2)}.`);
-      return;
-    }
-
-    setChange(calculatedChange);
-    processTransaction('Cash');
+  const handleCashTransaction = () => {
+    handleCashPayment(cashReceived);
+    setShowCashModal(false);
+    setShowTransactionModal(true); // Show transaction modal after cash payment
+    setShowChangeInModal(true); // Set this to true to show the change in the modal
   };
 
-  const handleShowTransaction = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
+  const handlePrint = () => {
+    setShowChangeInModal(false); // Hide the change when printing
+    setTimeout(() => window.print(), 100); // Print after a short delay to allow state to update
   };
 
-  const handlePrintTransaction = () => {
-    if (selectedTransaction) {
-      const printContent = printRef.current?.innerHTML;
-      if (printContent) {
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-          printWindow.document.write(`
-            <html>
-              <head>
-                <title>Transaction Print</title>
-                <style>
-                  body {
-                    font-family: Arial, sans-serif;
-                    padding: 20px;
-                  }
-                  .print-container {
-                    border: 1px solid #000;
-                    padding: 16px;
-                    margin: 16px 0;
-                  }
-                  .print-header, .print-footer {
-                    text-align: center;
-                    font-size: 18px;
-                    margin-bottom: 10px;
-                  }
-                  .print-items {
-                    margin: 16px 0;
-                  }
-                </style>
-              </head>
-              <body>
-                <div class="print-container">
-                  ${printContent}
-                </div>
-                <script>
-                  window.print();
-                  window.onafterprint = window.close;
-                </script>
-              </body>
-            </html>
-          `);
-        }
-      }
-    }
+  const resetStates = () => {
+    setCashReceived(0);
+    setShowTransactionModal(false);
+    setShowChangeInModal(false);
   };
 
   return (
@@ -184,14 +66,8 @@ const PosPage: React.FC = () => {
           <div className="w-full md:w-3/5 p-2 h-full flex flex-col bg-white">
             {/* Cart Items Container */}
             <div className="flex-grow overflow-y-auto p-2 max-h-[83%]">
-              <Cart
-                cartItems={cart}
-                onIncrease={handleIncreaseQuantity}
-                onDecrease={handleDecreaseQuantity}
-                onRemove={handleRemoveFromCart}
-              />
+              <Cart cartItems={cart} onIncrease={increaseQuantity} onDecrease={decreaseQuantity} onRemove={removeFromCart} />
             </div>
-
             {/* Total Section */}
             <div className="border-t border-gray-300 p-4 flex justify-end items-center text-xl font-semibold text-gray-700 pb-4">
               <span className="mr-4">Total: </span>
@@ -204,11 +80,7 @@ const PosPage: React.FC = () => {
             {/* Product List */}
             <div className="flex-grow grid grid-cols-2 p-2 sm:grid-cols-3 gap-4 overflow-y-auto max-h-[82%]">
               {products.map((product) => (
-                <button
-                  key={product.id}
-                  onClick={() => handleAddToCart(product)}
-                  className="bg-blue-600 text-white p-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 ease-in-out"
-                >
+                <button key={product.id} onClick={() => addToCart(product)} className="bg-blue-600 text-white p-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 ease-in-out">
                   <span className="block font-medium">{product.name}</span>
                   <span className="block mt-1">{currencySymbol}{product.price}</span>
                 </button>
@@ -223,14 +95,8 @@ const PosPage: React.FC = () => {
               <button onClick={() => handlePayment('Cash')} className="flex-1 bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600 transition">
                 Cash
               </button>
-              <button onClick={() => handlePayment('Guest')} className="flex-1 bg-yellow-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-yellow-600 transition">
+              <button onClick={() => handlePayment('Guest')} className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 transition">
                 Guest
-              </button>
-              <button onClick={() => setCart([])} className="flex-1 bg-red-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-red-600 transition">
-                Delete
-              </button>
-              <button onClick={() => setShowTransactionsModal(true)} className="bg-gray-600 text-white py-2 px-4 rounded-md shadow-md hover:bg-gray-700 transition">
-                Show Transactions
               </button>
             </div>
           </div>
@@ -240,72 +106,47 @@ const PosPage: React.FC = () => {
       {/* Modal for Cash Payment Details */}
       <Modal isOpen={showCashModal} onClose={() => setShowCashModal(false)} title="Cash Payment Details">
         <div className="p-4">
+          <label className="block text-lg font-semibold mb-2">Total Amount: {currencySymbol}{cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}</label>
           <label className="block text-lg font-semibold mb-2">Cash Received:</label>
-          <input
-            type="number"
-            value={cashReceived}
-            onChange={(e) => setCashReceived(parseFloat(e.target.value))}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          <button onClick={handleCashPayment} className="mt-4 bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600 transition">
+          <input type="number" value={cashReceived} onChange={(e) => setCashReceived(parseFloat(e.target.value))} className="w-full p-2 border border-gray-300 rounded-md" />
+          <div className="mt-4 text-lg font-semibold">Change: {currencySymbol}{(cashReceived - cart.reduce((total, item) => total + item.price * item.quantity, 0)).toFixed(2)}</div>
+          <button onClick={handleCashTransaction} className="mt-4 bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600 transition">
             Confirm Payment
           </button>
         </div>
       </Modal>
 
-      {/* Modal for Transaction List */}
-      <Modal isOpen={showTransactionsModal} onClose={() => setShowTransactionsModal(false)} title="Transactions List">
-        <div className="p-4 max-h-96 overflow-y-auto"> {/* Set the height and make the list scrollable */}
-          <ul className="space-y-2">
-            {transactions.map((transaction) => (
-              <li key={transaction.id} className="p-4 border rounded-lg shadow-sm flex justify-between items-center">
-                <div>
-                  <h4>Order ID: {transaction.orderId}</h4>
-                  <p>Items Count: {transaction.items.length}</p>
-                </div>
-                <div className="space-x-4">
-                  <button
-                    onClick={() => handleShowTransaction(transaction)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
-                  >
-                    Show
-                  </button>
-                  <button
-                    onClick={handlePrintTransaction}
-                    className="px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
-                  >
-                    Print
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </Modal>
+      {/* Modal for Transaction Details After Payment */}
+      <Modal isOpen={showTransactionModal} onClose={resetStates} title={savedTransaction?.orderId || "Order Details"}>
+        {savedTransaction && (
+          <div className="p-4">
+            {/* Date and Time on Top Right */}
+            <div className="text-sm font-semibold mb-2 flex justify-end w-full">
+              {/* Date aligned to the right */}
+              <span className="text-right">
+                {savedTransaction && new Date(savedTransaction.date.toMillis()).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}
+              </span>
+            </div>
 
-      {/* Hidden div for printing */}
-      <div ref={printRef} className="hidden">
-        {selectedTransaction && (
-          <div className="print-container">
-            <h2 className="print-header">Order ID: {selectedTransaction.orderId}</h2>
-            <ul className="print-items">
-              {selectedTransaction.items.map((item) => (
-                <li key={item.id}>
-                  {item.name} - {item.quantity} pcs
+            {/* Transaction Items List */}
+            <ul className="space-y-2">
+              {savedTransaction.items.map((item) => (
+                <li key={item.id} className="border-b border-dashed py-2 flex justify-between text-lg font-bold text-gray-800">
+                  <span>{item.name}</span>
+                  <span>{item.quantity}</span>
                 </li>
               ))}
             </ul>
-            <div className="print-footer">
-              Total Items: {selectedTransaction.items.reduce((acc, item) => acc + item.quantity, 0)}
-              {selectedTransaction.paymentMethod === 'Cash' && (
-                <div>
-                  Change: {currencySymbol}{selectedTransaction.change?.toFixed(2)}
-                </div>
-              )}
+
+            {/* Print Button */}
+            <div className="mt-4 flex justify-center">
+              <button onClick={handlePrint} className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 transition">
+                Print
+              </button>
             </div>
           </div>
         )}
-      </div>
+      </Modal>
     </>
   );
 };

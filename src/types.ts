@@ -21,7 +21,13 @@ export interface Transaction {
     items: CartItem[]; // List of items in the transaction
     date: Timestamp; // Date of the transaction
     paymentMethod: string; // Add the paymentMethod property
-    orderId?: number; // Add orderId field
+    orderId: string; // Add orderId field
     isDeleted?: boolean; // New field for soft delete
     change?: number; // Add the `change` property to the Transaction type
 }
+export interface User {
+    id: string;
+    email: string;
+    role: 'admin' | 'user';
+    password?: string;
+  }

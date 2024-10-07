@@ -1,14 +1,13 @@
 // src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { getUserRole } from '../firebaseService'; // Import Firebase service functions as needed
 import { auth } from '../firebaseConfig'; // Ensure you have this import configured correctly
-import { User } from 'firebase/auth';
+import { browserLocalPersistence, getAuth, onAuthStateChanged, setPersistence, User } from 'firebase/auth';
 
 interface AuthContextProps {
   user: User | null; // This should match the Firebase User type
   isAdmin: boolean;
   loading: boolean;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>; // Optional: Function to set user
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -19,27 +18,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up the onAuthStateChanged listener
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        setUser(user);
+    const auth = getAuth();
 
-        // Check if the user is an admin based on their email
-        const isAdminUser = ['aakashsoni96@gmail.com', 'ssoni@gmail.com'].includes(user.email || '');
-        setIsAdmin(isAdminUser);
+    // Set the authentication persistence to browser's local storage
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        // Listen for authentication state changes
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+          if (currentUser) {
+            setUser(currentUser);
+            
+            // Check if the user is an admin based on their email
+            const isAdminUser = ['aakashsoni96@gmail.com', 'ssoni@gmail.com'].includes(currentUser.email || '');
+            setIsAdmin(isAdminUser);
 
-        // If using Firestore to manage roles, uncomment the following line and comment the above lines:
-        // const role = await getUserRole(user.uid);
-        // setIsAdmin(role === 'admin');
-      } else {
-        // Reset user and admin state when not logged in
-        setUser(null);
-        setIsAdmin(false);
-      }
-      setLoading(false);
-    });
+            // If using Firestore to manage roles, you can use a Firestore call to get the user's role instead:
+            // const role = await getUserRole(currentUser.uid);
+            // setIsAdmin(role === 'admin');
+          } else {
+            setUser(null);
+            setIsAdmin(false);
+          }
+          setLoading(false);
+        });
 
-    return () => unsubscribe();
+        return () => unsubscribe(); // Cleanup the listener on unmount
+      })
+      .catch((error) => {
+        console.error("Error setting auth persistence:", error);
+        setLoading(false);
+      });
   }, []);
 
   return (
