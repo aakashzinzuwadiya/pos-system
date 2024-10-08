@@ -1,7 +1,7 @@
 // src/pages/TransactionPage.tsx
 import React, { useEffect, useState } from 'react';
 import TransactionList from '../components/TransactionList';
-import TransactionDetailsModal from 'components/TransactionDetailsModal';
+import TransactionDetailsModal from '../components/TransactionDetailsModal';
 import { usePos } from '../context/PosContext';
 import { useAuth } from '../context/AuthContext';
 import NavBar from '../components/NavBar';
@@ -32,13 +32,21 @@ const TransactionPage: React.FC = () => {
   return (
     <>
       <NavBar />
-      <div className="h-screen w-screen p-4 bg-gray-100 overflow-hidden">
-        <div className="h-screen flex flex-col overflow-auto pb-5">
-          <TransactionList
-            transactions={transactions}
-            onShow={handleShowTransaction} // Pass the show function to the TransactionList
-            onDelete={isAdmin ? handleDeleteTransaction : undefined} // Only show delete for admin
-          />
+      {/* Outer Container */}
+      <div className="h-screen w-screen pb-10">
+        {/* Flex container for layout control */}
+        <div className="h-full flex flex-col items-center justify-center overflow-hidden">
+          {/* Transaction List Container with scroll */}
+          <div className="w-full max-w-screen-lg h-full flex flex-col overflow-hidden bg-white border border-gray-300 rounded-lg shadow-md">
+            <div className="flex-grow overflow-y-auto p-4">
+              <TransactionList
+                transactions={transactions}
+                onShow={handleShowTransaction} // Pass the show function to the TransactionList
+                onDelete={isAdmin ? handleDeleteTransaction : undefined} // Only show delete for admin
+                showExport={isAdmin} // Show export button only for admin users
+              />
+            </div>
+          </div>
         </div>
 
         {/* Transaction Details Modal */}

@@ -1,5 +1,5 @@
 // src/components/ProductList.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Product } from '../types'; // Import the correct Product type from types file
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -13,6 +13,17 @@ interface ProductListProps {
 
 const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, onAddProduct }) => {
   const currencySymbol = process.env.REACT_APP_CURRENCY_SYMBOL;
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  // Calculate the total number of pages
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+
+  // Get the transactions to display on the current page
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="w-full h-full p-4 bg-white border border-gray-300 rounded-lg shadow-md flex flex-col">
@@ -42,7 +53,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
           <p className="text-center flex-grow">No products available.</p>
         ) : (
           <ul className="space-y-2">
-            {products.map((product) => (
+            {currentProducts.map((product) => (
               <li
                 key={product.id}
                 className="grid grid-cols-4 gap-4 items-center bg-gray-50 p-2 rounded-md shadow-sm"
@@ -72,6 +83,27 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
             ))}
           </ul>
         )}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center items-center mt-4 space-x-4">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md shadow-md hover:bg-gray-400 transition duration-150 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="font-semibold text-gray-700">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md shadow-md hover:bg-gray-400 transition duration-150 disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
   );

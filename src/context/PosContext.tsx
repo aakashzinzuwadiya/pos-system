@@ -7,6 +7,7 @@ import { Timestamp } from 'firebase/firestore';
 // Define context properties
 interface PosContextProps {
   products: Product[];
+  fetchProducts: () => void;
   cart: CartItem[];
   transactions: Transaction[];
   change: number;
@@ -34,13 +35,19 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [savedTransaction, setSavedTransaction] = useState<Transaction | null>(null);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      const productsList = await getProducts();
-      setProducts(productsList);
-    };
     fetchProducts();
     fetchTransactions();
   }, []);
+
+  // Fetch products from the backend or Firebase
+  const fetchProducts = async () => {
+    try {
+      const productsList = await getProducts();
+      setProducts(productsList);
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    }
+  };
 
   const fetchTransactions = async () => {
     const transactionsList = await getTransactions();
@@ -87,7 +94,6 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return `${day}${month}${year}${hour}${minute}${second}`;
   };
   
-
   const handleCashPayment = async (cashReceived: number) => {
     const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
     if (cashReceived < totalAmount) {
@@ -129,7 +135,6 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         change: 0, // No change for card payment
         orderId: generateOrderId(), //
       };
-      await addTransaction(transactionData);
       const transactionId = await addTransaction(transactionData);
       const newTransaction: Transaction = { ...transactionData, id: transactionId }; // Create full Transact
       setSavedTransaction(newTransaction);
@@ -154,6 +159,7 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <PosContext.Provider
       value={{
         products,
+        fetchProducts,
         cart,
         transactions,
         change,

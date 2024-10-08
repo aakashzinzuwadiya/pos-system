@@ -1,13 +1,16 @@
-// src/pages/PosPage.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Cart from '../components/Cart';
 import Modal from '../components/Modal';
 import NavBar from 'components/NavBar';
+import Loading from '../components/Loading'; // Import Loading component
 import { usePos } from 'context/PosContext';
+import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
+import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 
 const PosPage: React.FC = () => {
   const {
     products,
+    fetchProducts,
     cart,
     change,
     addToCart,
@@ -16,50 +19,73 @@ const PosPage: React.FC = () => {
     removeFromCart,
     handleCashPayment,
     handleCardPayment,
-    savedTransaction, // Access saved transaction from context
+    savedTransaction,
   } = usePos();
+
   const [cashReceived, setCashReceived] = useState(0);
   const [showCashModal, setShowCashModal] = useState(false);
-  const [showTransactionModal, setShowTransactionModal] = useState(false); // New state for transaction modal
-  const [showChangeInModal, setShowChangeInModal] = useState(false); // State to control if the change should be shown in the modal
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [showChangeInModal, setShowChangeInModal] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading state
 
   const currencySymbol = process.env.REACT_APP_CURRENCY_SYMBOL || '$';
 
-  const handlePayment = (paymentMethod: string) => {
+  const handlePayment = async (paymentMethod: string) => {
     if (cart.length === 0) {
-      alert('Cart is empty. Please add items to the cart before proceeding to payment.');
+      toast.error('Cart is empty. Please add items to the cart before proceeding to payment.');
       return;
     }
-
-    if (paymentMethod === 'Cash') {
-      setShowCashModal(true);
-    } else if (paymentMethod === 'Card' || paymentMethod === 'Guest') {
-      handleCardPayment(paymentMethod);
-      setShowTransactionModal(true); // Show transaction modal after card payment
+  
+    setLoading(true);
+    try {
+      if (paymentMethod === 'Cash') {
+        setShowCashModal(true);
+      } else if (paymentMethod === 'Card' || paymentMethod === 'Guest') {
+        await handleCardPayment(paymentMethod);
+        setShowTransactionModal(true);
+      }
+      
+    } catch (error) {
+      toast.error('Failed to process payment. Please try again.'); // Show error message
     }
+    setLoading(false);
   };
-
-  const handleCashTransaction = () => {
-    handleCashPayment(cashReceived);
+  
+  // Handle cash transactions
+  const handleCashTransaction = async () => {
+    setLoading(true); // Set loading to true when operation starts
+    await handleCashPayment(cashReceived);
     setShowCashModal(false);
     setShowTransactionModal(true); // Show transaction modal after cash payment
     setShowChangeInModal(true); // Set this to true to show the change in the modal
+    setLoading(false); // Set loading to false when operation ends
   };
 
+  // Handle printing
   const handlePrint = () => {
     setShowChangeInModal(false); // Hide the change when printing
     setTimeout(() => window.print(), 100); // Print after a short delay to allow state to update
   };
 
+  // Reset states after transactions
   const resetStates = () => {
     setCashReceived(0);
     setShowTransactionModal(false);
     setShowChangeInModal(false);
   };
 
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
   return (
     <>
       <NavBar />
+
+      <ToastContainer />
+      {/* Show Loading Indicator if loading is true */}
+      {loading && <Loading />}
+
       <div className="h-screen w-screen flex items-center justify-center overflow-hidden bg-gray-100 pb-5">
         <div className="bg-white border border-gray-300 rounded-lg shadow-xl w-full max-w-screen-2xl h-full flex flex-col md:flex-row">
           {/* Cart Section */}
@@ -82,7 +108,7 @@ const PosPage: React.FC = () => {
               {products.map((product) => (
                 <button key={product.id} onClick={() => addToCart(product)} className="bg-blue-600 text-white p-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 ease-in-out">
                   <span className="block font-medium">{product.name}</span>
-                  <span className="block mt-1">{currencySymbol}{product.price}</span>
+                  <span className="block mt-1">{currencySymbol}{product.price.toFixed(2)}</span>
                 </button>
               ))}
             </div>

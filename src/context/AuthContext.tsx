@@ -1,63 +1,55 @@
-// src/contexts/AuthContext.tsx
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { auth } from '../firebaseConfig'; // Ensure you have this import configured correctly
-import { browserLocalPersistence, getAuth, onAuthStateChanged, setPersistence, User } from 'firebase/auth';
+// src/context/AuthContext.tsx
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextProps {
-  user: User | null; // This should match the Firebase User type
-  isAdmin: boolean;
+  user: User | null;
   loading: boolean;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  logout: () => void;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const newUserObj = {...user, role: ['aakashsoni96@gmail.com', 'ssoni@gmail.com'].includes(user?.email || '') ? 'admin' : 'user'};
+        setUser(newUserObj);
+        setIsAdmin(['aakashsoni96@gmail.com', 'ssoni@gmail.com'].includes(user.email || '')); // Check admin emails
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+      }
+      setLoading(false);
+    });
 
-    // Set the authentication persistence to browser's local storage
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => {
-        // Listen for authentication state changes
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-          if (currentUser) {
-            setUser(currentUser);
-            
-            // Check if the user is an admin based on their email
-            const isAdminUser = ['aakashsoni96@gmail.com', 'ssoni@gmail.com'].includes(currentUser.email || '');
-            setIsAdmin(isAdminUser);
-
-            // If using Firestore to manage roles, you can use a Firestore call to get the user's role instead:
-            // const role = await getUserRole(currentUser.uid);
-            // setIsAdmin(role === 'admin');
-          } else {
-            setUser(null);
-            setIsAdmin(false);
-          }
-          setLoading(false);
-        });
-
-        return () => unsubscribe(); // Cleanup the listener on unmount
-      })
-      .catch((error) => {
-        console.error("Error setting auth persistence:", error);
-        setLoading(false);
-      });
+    return () => unsubscribe();
   }, []);
 
+  const logout = async () => {
+    await signOut(auth);
+    setUser(null);
+    setIsAdmin(false);
+    navigate('/login');
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, setUser }}>
+    <AuthContext.Provider value={{ user, loading, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook to use the Auth context
+// Custom hook to use the AuthContext
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

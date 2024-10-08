@@ -9,15 +9,20 @@ import { getProducts, addProduct, updateProduct, deleteProduct, getTransactions,
 import { Product, Transaction } from '../types';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import NavBar from 'components/NavBar';
+import NavBar from '../components/NavBar';
+import Loading from 'components/Loading';
+import { useAuth } from 'context/AuthContext';
 
 const AdminPage: React.FC = () => {
+  const isAdmin = useAuth();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null); // Selected transaction state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false); // State for transaction modal
+  const [loading, setLoading] = useState(false);
 
   // Fetch products from Firestore
   const fetchProducts = async () => {
@@ -36,8 +41,10 @@ const AdminPage: React.FC = () => {
   };
 
   useEffect(() => {
+    setLoading(true);
     fetchProducts();
     fetchTransactions();
+    setLoading(false);
   }, []);
 
   const handleAddProduct = async (product: Omit<Product, 'id'>) => {
@@ -107,6 +114,8 @@ const AdminPage: React.FC = () => {
   return (
     <>
       <NavBar />
+      {/* Show Loading Indicator if loading is true */}
+      {loading && <Loading />}
       <div className="h-screen p-4 flex items-center justify-center bg-admin-page bg-cover bg-center overflow-hidden m-0 mb-5">
         <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
@@ -125,7 +134,8 @@ const AdminPage: React.FC = () => {
               <TransactionList
                 transactions={transactions}
                 onShow={handleShowTransaction}
-                onDelete={handleDeleteTransaction}
+                onDelete={isAdmin ? handleDeleteTransaction : undefined} // Only show delete for admin
+                showExport={!!isAdmin} // Ensure isAdmin is a boolean using !! (double exclamation)
               />
             </div>
           </div>

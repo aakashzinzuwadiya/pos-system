@@ -1,37 +1,25 @@
 // src/App.tsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import LoginPage from 'components/LoginPage';
 import AdminPage from './pages/AdminPage';
 import PosPage from './pages/PosPage';
-import TransactionPage from './pages/TransactionPage';
-import LoginPage from 'components/LoginPage';
-import { AuthProvider } from './context/AuthContext';
-import PrivateRoute from './components/PrivateRoute';
-import UserManagement from 'components/UserManagement';
-import { PosProvider } from 'context/PosContext';
+import TransactionPage from 'pages/TransactionPage';
 
 const App: React.FC = () => {
+  const { user, loading, isAdmin } = useAuth();
+
+  if (loading) return <div>Loading...</div>;
+
   return (
-    <div className='App'>
-
-      <Router>
-        <AuthProvider>
-          <PosProvider>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/admin" element={<PrivateRoute component={AdminPage} adminRoute />} />
-            <Route path="/pos" element={<PrivateRoute component={PosPage} />} />
-            <Route path="/transactions" element={<PrivateRoute component={TransactionPage} />} />
-
-            <Route path="/admin/users" element={<PrivateRoute component={UserManagement} adminRoute/>} />
-
-            {/* Redirect to login if no match */}
-            <Route path="*" element={<Navigate to="/login" />} />
-          </Routes>
-          </PosProvider>
-        </AuthProvider>
-      </Router>
-    </div>
+    <Routes>
+      <Route path="/login" element={!user ? <LoginPage /> : <Navigate to={isAdmin ? '/admin' : '/pos'} />} />
+      <Route path="/admin" element={user && isAdmin ? <AdminPage /> : <Navigate to="/login" />} />
+      <Route path="/pos" element={<PosPage />} />
+      <Route path="/transactions" element={<TransactionPage />} />
+      <Route path="*" element={<Navigate to={user ? (isAdmin ? '/admin' : '/pos') : '/login'} />} />
+    </Routes>
   );
 };
 
