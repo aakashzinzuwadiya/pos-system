@@ -151,6 +151,23 @@ const NavBar: React.FC = () => {
                         </li>
                       )}
 
+                      {isAdmin && (
+                        <li
+                          className="hover:bg-gray-200 rounded-md px-4 py-2 cursor-pointer w-full"
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            navigate('/analytics'); // Use navigate to redirect
+                          }}
+                        >
+                          <div className="flex items-center w-full h-full">
+                            <Link className="w-full h-full" to="/analytics">
+                              Reports
+                            </Link>
+                          </div>
+                        </li>
+                      )}
+
+
                       {/* Logout Button */}
                       <li
                         className="hover:bg-gray-200 rounded-md px-4 py-2 cursor-pointer w-full"

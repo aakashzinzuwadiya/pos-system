@@ -1,6 +1,6 @@
 // src/contexts/PosContext.tsx
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { Product, CartItem, Transaction } from '../types';
+import { Product, CartItem, Transaction, ProductAnalyticsType } from '../types';
 import { getProducts, getTransactions, addTransaction, deleteTransaction } from '../firebaseService';
 import { Timestamp } from 'firebase/firestore';
 
@@ -20,7 +20,8 @@ interface PosContextProps {
   handleCashPayment: (cashReceived: number) => void;
   fetchTransactions: () => void;
   handleCardPayment: (paymentMethod: string) => void;
-  handleDeleteTransaction: (id: string) => Promise<void>; // <-- Add this
+  handleDeleteTransaction: (id: string) => Promise<void>;
+  getProductAnalytics: () => ProductAnalyticsType[];
 }
 
 // Create context
@@ -90,10 +91,10 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const hour = String(now.getHours()).padStart(2, '0'); // Get hour and pad with leading 0 if needed
     const minute = String(now.getMinutes()).padStart(2, '0'); // Get minute and pad with leading 0
     const second = String(now.getSeconds()).padStart(2, '0'); // Get second and pad with leading 0
-  
+
     return `${day}${month}${year}${hour}${minute}${second}`;
   };
-  
+
   const handleCashPayment = async (cashReceived: number) => {
     const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
     if (cashReceived < totalAmount) {
@@ -155,6 +156,35 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  // Create the analytics function to calculate product sales data
+  const getProductAnalytics = (): ProductAnalyticsType[] => {
+    const analytics: ProductAnalyticsType[] = [];
+  
+    // Use the `transactions` state directly in the function
+    transactions.forEach((transaction) => {
+      transaction.items.forEach((item) => {
+        const existingProduct = analytics.find((prod) => prod.productId === item.id);
+  
+        if (existingProduct) {
+          existingProduct.totalQuantitySold += item.quantity;
+          existingProduct.totalRevenue += item.price * item.quantity;
+          existingProduct.numberOfSales += 1;
+        } else {
+          analytics.push({
+            productId: item.id,
+            productName: item.name,
+            totalQuantitySold: item.quantity,
+            totalRevenue: item.price * item.quantity,
+            numberOfSales: 1,
+            date: new Date(transaction.date.toMillis()), // Make sure date is included
+          });
+        }
+      });
+    });
+  
+    return analytics;
+  };
+
   return (
     <PosContext.Provider
       value={{
@@ -173,6 +203,7 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         handleCardPayment,
         fetchTransactions,
         handleDeleteTransaction, // Provide the delete handler in context
+        getProductAnalytics,
       }}
     >
       {children}

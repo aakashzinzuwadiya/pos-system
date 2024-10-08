@@ -6,6 +6,7 @@ import LoginPage from 'components/LoginPage';
 import AdminPage from './pages/AdminPage';
 import PosPage from './pages/PosPage';
 import TransactionPage from 'pages/TransactionPage';
+import ProductAnalytics from 'components/ProductAnalytics';
 
 const App: React.FC = () => {
   const { user, loading, isAdmin } = useAuth();
@@ -18,6 +19,7 @@ const App: React.FC = () => {
       <Route path="/admin" element={user && isAdmin ? <AdminPage /> : <Navigate to="/login" />} />
       <Route path="/pos" element={<PosPage />} />
       <Route path="/transactions" element={<TransactionPage />} />
+      <Route path="/analytics" element={<ProductAnalytics />} />
       <Route path="*" element={<Navigate to={user ? (isAdmin ? '/admin' : '/pos') : '/login'} />} />
     </Routes>
   );

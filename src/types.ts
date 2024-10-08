@@ -30,4 +30,13 @@ export interface User {
     email: string;
     role: 'admin' | 'user';
     password?: string;
-  }
+}
+
+export interface ProductAnalyticsType {
+    date: Date;
+    productId: string;
+    productName: string;
+    totalQuantitySold: number;
+    totalRevenue: number;
+    numberOfSales: number;
+}
