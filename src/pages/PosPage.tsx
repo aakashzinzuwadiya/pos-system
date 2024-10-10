@@ -113,7 +113,7 @@ const PosPage: React.FC = () => {
           {/* Product List Section */}
           <div className="w-full md:w-2/5 p-2 h-full flex flex-col border-l border-gray-200">
             {/* Product List */}
-            <div className="flex-grow p-2 sm:grid-cols-3 gap-4 overflow-y-hidden max-h-[82%]">
+            <div className="flex-grow p-2 sm:grid-cols-3 gap-4 overflow-y-hidden max-h-[83%]">
               {/* {products.map((product) => (
                 <button key={product.id} onClick={() => addToCart(product)} className="bg-blue-600 text-white p-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 ease-in-out">
                   <span className="block font-medium">{product.name}</span>
@@ -121,27 +121,31 @@ const PosPage: React.FC = () => {
                 </button>
               ))} */}
               {Object.keys(groupedProducts).map((category) => (
-                <div key={category} className="mb-8">
+                <div key={category} className="mb-2 pb-2"> {/* Added border for visual separation */}
                   {/* Category Header */}
-                  <h5 className="font-bold text-gray-800 mb-4">{category}</h5>
+                  <h5 className="text-lg font-semibold text-gray-700 mb-2 pl-2 border-l-4 border-blue-500">{category}</h5>
 
                   {/* Product Buttons in a Horizontal Row with Wrapping */}
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {groupedProducts[category].map((product) => (
                       <button
                         key={product.id}
                         onClick={() => addToCart(product)}
-                        className="bg-blue-600 text-white p-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 ease-in-out flex items-center justify-between w-1/4" // Each product takes 1/4 width
+                        className="bg-blue-500 text-white p-3 rounded-md shadow-sm hover:bg-blue-600 transition duration-200 ease-in-out w-[25%] min-w-[180px] h-[70px] flex items-center justify-center text-center text-sm" // Uniform size and text adjustments
                       >
-                        <div className="flex flex-col">
-                          <span className="font-medium">{product.name}</span>
-                          <span className="mt-1">{currencySymbol}{product.price.toFixed(2)}</span>
+                        <div className="flex flex-col items-center justify-center">
+                          <span className="font-medium truncate">{product.name}</span> {/* `truncate` ensures text doesn't overflow */}
+                          <span className="mt-1 text-sm text-yellow-200">
+                            {currencySymbol}
+                            {product.price.toFixed(2)}
+                          </span>
                         </div>
                       </button>
                     ))}
                   </div>
                 </div>
               ))}
+
 
             </div>
 

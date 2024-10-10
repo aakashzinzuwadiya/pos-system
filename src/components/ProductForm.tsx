@@ -6,22 +6,39 @@ interface ProductFormProps {
   editingProduct: Product | null;
 }
 
+const categories = ['Food', 'Beverages', 'Desserts']; // Centralized list of categories
+
 const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => {
   const [name, setName] = useState(editingProduct?.name || '');
-  const [price, setPrice] = useState(editingProduct?.price || 0);
-  const [category, setCategory] = useState<'Food' | 'Beverages'>(editingProduct?.category || 'Food'); // Add category state
+  const [price, setPrice] = useState<string>(editingProduct ? editingProduct.price.toString() : ''); // Use a string for price to avoid showing 0 initially
+  const [category, setCategory] = useState<'Food' | 'Beverages' | 'Desserts'>(editingProduct?.category || 'Food'); // Add category state
 
+  // Update the form when editingProduct changes
   useEffect(() => {
     if (editingProduct) {
       setName(editingProduct.name);
-      setPrice(editingProduct.price);
-      setCategory(editingProduct.category); // Set the category if editing
+      setPrice(editingProduct.price.toString());
+      setCategory(editingProduct.category);
     }
   }, [editingProduct]);
 
+  // Handle form submission
   const handleSubmit = () => {
-    const productData = { name, price, category }; // Include category in the product data
+    // Ensure all fields are filled before submitting
+    if (name.trim() === '' || price.trim() === '' || isNaN(Number(price))) {
+      alert('Please fill all fields correctly.');
+      return;
+    }
+
+    const productData = { name, price: parseFloat(price), category }; // Include category in the product data
     onSave(productData); // Pass product data to parent component
+
+    // Reset the form if not in edit mode
+    if (!editingProduct) {
+      setName('');
+      setPrice('');
+      setCategory('Food');
+    }
   };
 
   return (
@@ -32,6 +49,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          placeholder="Enter product name"
           className="w-full p-2 border border-gray-300 rounded"
         />
       </div>
@@ -40,7 +58,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
         <input
           type="number"
           value={price}
-          onChange={(e) => setPrice(parseFloat(e.target.value))}
+          onChange={(e) => setPrice(e.target.value)}
+          placeholder="Enter product price"
           className="w-full p-2 border border-gray-300 rounded"
         />
       </div>
@@ -48,11 +67,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
         <label className="block text-gray-700">Category</label>
         <select
           value={category}
-          onChange={(e) => setCategory(e.target.value as 'Food' | 'Beverages')}
+          onChange={(e) => setCategory(e.target.value as 'Food' | 'Beverages' | 'Desserts')}
           className="w-full p-2 border border-gray-300 rounded"
         >
-          <option value="Food">Food</option>
-          <option value="Beverages">Beverages</option>
+          {/* Generate category options dynamically */}
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
         </select>
       </div>
       <button

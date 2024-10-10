@@ -4,7 +4,7 @@ export interface Product {
     id: string; // Use 'string' type for Firestore document IDs
     name: string;
     price: number;
-    category: 'Food' | 'Beverages';
+    category: 'Food' | 'Beverages' | 'Desserts';
 }
 
 export interface CartItem {
