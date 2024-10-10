@@ -6,6 +6,7 @@ import Loading from '../components/Loading'; // Import Loading component
 import { usePos } from 'context/PosContext';
 import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
 import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
+import { Product } from 'types';
 
 const PosPage: React.FC = () => {
   const {
@@ -35,7 +36,7 @@ const PosPage: React.FC = () => {
       toast.error('Cart is empty. Please add items to the cart before proceeding to payment.');
       return;
     }
-  
+
     setLoading(true);
     try {
       if (paymentMethod === 'Cash') {
@@ -44,13 +45,13 @@ const PosPage: React.FC = () => {
         await handleCardPayment(paymentMethod);
         setShowTransactionModal(true);
       }
-      
+
     } catch (error) {
       toast.error('Failed to process payment. Please try again.'); // Show error message
     }
     setLoading(false);
   };
-  
+
   // Handle cash transactions
   const handleCashTransaction = async () => {
     setLoading(true); // Set loading to true when operation starts
@@ -73,6 +74,14 @@ const PosPage: React.FC = () => {
     setShowTransactionModal(false);
     setShowChangeInModal(false);
   };
+
+  // Group products by category
+  const groupedProducts = products.reduce<{ [key: string]: Product[] }>((acc, product) => {
+    const category = product.category || 'Uncategorized';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(product);
+    return acc;
+  }, {});
 
   useEffect(() => {
     fetchProducts();
@@ -104,13 +113,36 @@ const PosPage: React.FC = () => {
           {/* Product List Section */}
           <div className="w-full md:w-2/5 p-2 h-full flex flex-col border-l border-gray-200">
             {/* Product List */}
-            <div className="flex-grow grid grid-cols-2 p-2 sm:grid-cols-3 gap-4 overflow-y-auto max-h-[82%]">
-              {products.map((product) => (
+            <div className="flex-grow p-2 sm:grid-cols-3 gap-4 overflow-y-hidden max-h-[82%]">
+              {/* {products.map((product) => (
                 <button key={product.id} onClick={() => addToCart(product)} className="bg-blue-600 text-white p-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 ease-in-out">
                   <span className="block font-medium">{product.name}</span>
                   <span className="block mt-1">{currencySymbol}{product.price.toFixed(2)}</span>
                 </button>
+              ))} */}
+              {Object.keys(groupedProducts).map((category) => (
+                <div key={category} className="mb-8">
+                  {/* Category Header */}
+                  <h5 className="font-bold text-gray-800 mb-4">{category}</h5>
+
+                  {/* Product Buttons in a Horizontal Row with Wrapping */}
+                  <div className="flex flex-wrap gap-2">
+                    {groupedProducts[category].map((product) => (
+                      <button
+                        key={product.id}
+                        onClick={() => addToCart(product)}
+                        className="bg-blue-600 text-white p-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 ease-in-out flex items-center justify-between w-1/4" // Each product takes 1/4 width
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium">{product.name}</span>
+                          <span className="mt-1">{currencySymbol}{product.price.toFixed(2)}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
+
             </div>
 
             {/* Payment Options Buttons */}

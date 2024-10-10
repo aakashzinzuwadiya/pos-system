@@ -29,6 +29,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentTransactions = transactions.slice(indexOfFirstItem, indexOfLastItem);
 
+  const currencySymbol = process.env.REACT_APP_CURRENCY_SYMBOL || '$';
+
   // Handle CSV Export
   const handleExportCSV = () => {
     const csvData = transactions.map((transaction) => ({
@@ -71,8 +73,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
       {/* Table Headers */}
       <div className="grid grid-cols-6 gap-4 p-2 font-semibold text-gray-800 bg-gray-100 border-b border-gray-300 rounded-t-md">
         <div className="col-span-2">Order ID</div>
-        <div className="text-center">Items Count</div>
-        {showExport && <div className="text-center">Total Amount</div>}
+        <div className="text-center">Items</div>
+        {showExport && <div className="text-center">Total ({currencySymbol})</div>}
         <div className="text-center col-span-2">Actions</div>
       </div>
 

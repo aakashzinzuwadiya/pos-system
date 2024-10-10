@@ -157,33 +157,42 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // Create the analytics function to calculate product sales data
+  // Assuming `products` is an array containing all products information
+  // Example: [{ id: '1', name: 'Product A' }, { id: '2', name: 'Product B' }, ...]
+
   const getProductAnalytics = (): ProductAnalyticsType[] => {
     const analytics: ProductAnalyticsType[] = [];
-  
-    // Use the `transactions` state directly in the function
+
+    // Step 1: Initialize analytics with all products, setting date to a default value (e.g., epoch date)
+    products.forEach((product) => {
+      analytics.push({
+        productId: product.id,
+        productName: product.name,
+        totalQuantitySold: 0,
+        totalRevenue: 0,
+        numberOfSales: 0,
+        date: new Date(0), // Default date for products with no sales
+      });
+    });
+
+    // Step 2: Update analytics with transactions data
     transactions.forEach((transaction) => {
       transaction.items.forEach((item) => {
         const existingProduct = analytics.find((prod) => prod.productId === item.id);
-  
+
         if (existingProduct) {
           existingProduct.totalQuantitySold += item.quantity;
           existingProduct.totalRevenue += item.price * item.quantity;
           existingProduct.numberOfSales += 1;
-        } else {
-          analytics.push({
-            productId: item.id,
-            productName: item.name,
-            totalQuantitySold: item.quantity,
-            totalRevenue: item.price * item.quantity,
-            numberOfSales: 1,
-            date: new Date(transaction.date.toMillis()), // Make sure date is included
-          });
+          existingProduct.date = new Date(transaction.date.toMillis());
         }
       });
     });
-  
+
     return analytics;
   };
+
+
 
   return (
     <PosContext.Provider
