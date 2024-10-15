@@ -13,6 +13,8 @@ import NavBar from '../components/NavBar';
 import Loading from 'components/Loading';
 import { useAuth } from 'context/AuthContext';
 
+import './AdminPage.css';
+
 const AdminPage: React.FC = () => {
   const isAdmin = useAuth();
 

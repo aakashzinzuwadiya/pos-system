@@ -3,6 +3,8 @@ import { Product } from '../types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
 
+import './ProductList.css';
+
 interface ProductListProps {
   products: Product[];
   onEdit: (product: Product) => void;

@@ -3,6 +3,8 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
+import './Cart.css';
+
 interface CartItem {
   id: string; // Change from `number` to `string`
   name: string;

@@ -28,6 +28,61 @@ body, html {
   height: 100vh;
 }
 
+/* src/styles.css */
+
+@media (max-width: 768px) {
+  /* Tablet and iPad */
+  .admin-page, .pos-page, .transaction-page, .product-analytics {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  /* Adjust the layout for smaller screens */
+  .sidebar {
+    width: 100%;
+    display: none; /* Hide sidebar on small devices */
+  }
+  
+  .content {
+    width: 100%;
+    padding: 0;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* For larger tablets or smaller laptops */
+  .admin-page, .pos-page, .transaction-page, .product-analytics {
+    padding: 20px;
+    font-size: 16px;
+  }
+
+  .sidebar {
+    width: 25%;
+    display: block;
+  }
+  
+  .content {
+    width: 75%;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* For laptops and larger screens */
+  .admin-page, .pos-page, .transaction-page, .product-analytics {
+    padding: 30px;
+    font-size: 18px;
+  }
+
+  .sidebar {
+    width: 20%;
+    display: block;
+  }
+
+  .content {
+    width: 80%;
+  }
+}
+
 
 
 

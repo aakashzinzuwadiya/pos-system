@@ -8,6 +8,8 @@ import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer
 import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 import { Product } from 'types';
 
+import './PosPage.css';
+
 const PosPage: React.FC = () => {
   const {
     products,

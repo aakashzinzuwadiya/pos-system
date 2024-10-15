@@ -1,0 +1,197 @@
+/* src/components/TransactionList.css */
+
+/* General Container Styling */
+.transaction-list-container {
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  /* Header section styling */
+  .transaction-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .transaction-list-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-color);
+  }
+  
+  .export-button {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #38a169;
+    color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s;
+  }
+  
+  .export-button:hover {
+    background-color: #2f855a;
+  }
+  
+  /* Table Header Styling */
+  .transaction-list-header-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    padding: 0.5rem;
+    font-weight: 600;
+    color: #2d3748;
+    background-color: #f7fafc;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 4px 4px 0 0;
+  }
+  
+  @media (max-width: 768px) {
+    .transaction-list-header-row {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  /* Transaction List Container */
+  .transaction-list-items {
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+  
+  .transaction-list-item {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s;
+  }
+  
+  .transaction-list-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  @media (max-width: 768px) {
+    .transaction-list-item {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  /* Text Styling for Transaction Data */
+  .transaction-id,
+  .transaction-items,
+  .transaction-total,
+  .transaction-actions {
+    font-size: 1rem;
+    color: #2d3748;
+  }
+  
+  .transaction-items {
+    text-align: center;
+  }
+  
+  .transaction-total {
+    text-align: center;
+    color: #38a169;
+  }
+  
+  /* Actions (View and Delete) */
+  .transaction-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .action-button {
+    padding: 0.5rem;
+    color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s;
+  }
+  
+  .action-button.view {
+    background-color: #3182ce;
+  }
+  
+  .action-button.view:hover {
+    background-color: #2b6cb0;
+  }
+  
+  .action-button.delete {
+    background-color: #e53e3e;
+  }
+  
+  .action-button.delete:hover {
+    background-color: #c53030;
+  }
+  
+  /* Pagination Controls */
+  .pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .pagination-button {
+    padding: 0.5rem 1rem;
+    background-color: #e2e8f0;
+    color: #2d3748;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.15s;
+  }
+  
+  .pagination-button:hover {
+    background-color: #cbd5e0;
+  }
+  
+  .pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .pagination-info {
+    font-weight: 600;
+    color: #4a5568;
+  }
+  
+  /* Mobile Responsive Adjustments */
+  @media (max-width: 640px) {
+    .transaction-list-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .transaction-list-header-row {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  
+    .transaction-list-item {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  
+    .transaction-actions {
+      justify-content: flex-start;
+    }
+  
+    .export-button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+  

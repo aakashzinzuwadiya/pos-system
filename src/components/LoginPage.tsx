@@ -1,17 +1,18 @@
 // src/pages/LoginPage.tsx
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebaseConfig';
+import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+
+import { auth } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import Loading from './Loading';
+
+import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { user, loading, isAdmin } = useAuth(); // Get user, loading, and isAdmin from context
-  const navigate = useNavigate();
+  const { loading } = useAuth(); // Get user, loading, and isAdmin from context
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
