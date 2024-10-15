@@ -17,6 +17,7 @@ const PosPage: React.FC = () => {
     cart,
     change,
     addToCart,
+    clearCart,
     increaseQuantity,
     decreaseQuantity,
     removeFromCart,
@@ -70,6 +71,14 @@ const PosPage: React.FC = () => {
     setTimeout(() => window.print(), 100); // Print after a short delay to allow state to update
   };
 
+  const handleClearCart = () => {
+    // Assuming your cart management logic allows for clearing
+    // Example: If using state, you can reset the cart to an empty array.
+    clearCart(); // Function to clear the cart items
+    toast.success('Cart cleared successfully!'); // Optional: Show a toast notification
+  };
+  
+
   // Reset states after transactions
   const resetStates = () => {
     setCashReceived(0);
@@ -105,11 +114,25 @@ const PosPage: React.FC = () => {
             <div className="flex-grow overflow-y-auto p-2 max-h-[83%]">
               <Cart cartItems={cart} onIncrease={increaseQuantity} onDecrease={decreaseQuantity} onRemove={removeFromCart} />
             </div>
-            {/* Total Section */}
-            <div className="border-t border-gray-300 p-4 flex justify-end items-center text-xl font-semibold text-gray-700 pb-4">
-              <span className="mr-4">Total: </span>
-              <span className="text-green-600">{currencySymbol}{cart.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2)}</span>
+
+            <div className="border-t border-gray-300 p-4 flex justify-between items-center text-sm font-semibold text-gray-700 pb-4">
+              {/* Clear Cart Button aligned to the left */}
+              <button
+                onClick={() => handleClearCart()}
+                className="bg-red-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-red-600 transition duration-150 ease-in-out">
+                Clear Cart
+              </button>
+
+              {/* Total value aligned to the right */}
+              <div className="flex items-center">
+                <span className="mr-4">Total:</span>
+                <span className="text-green-600">
+                  {currencySymbol}
+                  {cart.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2)}
+                </span>
+              </div>
             </div>
+
           </div>
 
           {/* Product List Section */}

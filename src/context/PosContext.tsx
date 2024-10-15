@@ -14,6 +14,7 @@ interface PosContextProps {
   savedTransaction: Transaction | null; // Add savedTransaction to context
   setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
   addToCart: (product: Product) => void;
+  clearCart: () => void;
   increaseQuantity: (id: string) => void;
   decreaseQuantity: (id: string) => void;
   removeFromCart: (id: string) => void;
@@ -66,6 +67,12 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setCart([...cart, newItem]);
     }
   };
+
+  // Define clearCart to empty the cart
+  const clearCart = () => {
+    setCart([]); // Simply reset the cart state to an empty array
+  };
+
 
   const increaseQuantity = (id: string) => {
     const updatedCart = cart.map((item) => (item.id === id ? { ...item, quantity: item.quantity + 1 } : item));
@@ -205,6 +212,7 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         savedTransaction,
         setCart,
         addToCart,
+        clearCart,
         increaseQuantity,
         decreaseQuantity,
         removeFromCart,

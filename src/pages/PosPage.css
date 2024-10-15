@@ -1,241 +1,92 @@
 /* src/pages/PosPage.css */
 
-/* General container for the POS page */
-.pos-page-container {
+/* General layout adjustments */
+.pos-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Cart section should scroll if content exceeds height */
+.cart-section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.cart-items {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.cart-total {
+  padding: 1rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Payment buttons should be visible at the bottom */
+.payment-buttons {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* Adjustments for small screens (tablets, iPads, and mobile devices) */
+@media (max-width: 1024px) {
+  .pos-container {
+    flex-direction: column;
     height: 100vh;
-    width: 100vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    background-color: #f7fafc;
-    padding-bottom: 1rem;
   }
-  
-  .pos-content {
-    display: flex;
-    flex-direction: column;
-    background-color: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 1440px;
-    height: 100%;
+
+  .cart-section, .product-list-section {
+    height: 50vh; /* Split space evenly between cart and product list */
   }
-  
-  @media (min-width: 768px) {
-    .pos-content {
-      flex-direction: row;
-    }
-  }
-  
-  /* Cart Section */
-  .cart-section {
-    width: 100%;
-    padding: 1rem;
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  
-  @media (min-width: 768px) {
-    .cart-section {
-      width: 60%;
-      border-right: 1px solid #e2e8f0;
-      border-bottom: none;
-    }
-  }
-  
-  .cart-items {
-    flex-grow: 1;
-    overflow-y: auto;
-    max-height: 75%;
-    padding: 1rem;
-  }
-  
+
   .cart-total {
-    padding: 1rem;
-    border-top: 1px solid #e2e8f0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-  }
-  
-  .cart-total span {
-    color: #38a169;
-    margin-left: 0.5rem;
-  }
-  
-  /* Product List Section */
-  .product-section {
+    position: sticky;
+    bottom: 0;
+    background-color: white;
     width: 100%;
     padding: 1rem;
-    display: flex;
-    flex-direction: column;
+    z-index: 10;
   }
-  
-  @media (min-width: 768px) {
-    .product-section {
-      width: 40%;
-    }
-  }
-  
-  .product-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    overflow-y: auto;
-    max-height: 75%;
-  }
-  
-  .product-item {
-    background-color: #3182ce;
-    color: white;
-    padding: 1rem;
-    border-radius: 6px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-    width: 100%;
-    min-width: 180px;
-    max-width: 24%;
-  }
-  
-  .product-item:hover {
-    background-color: #2b6cb0;
-  }
-  
-  .product-item span {
-    font-size: 0.875rem;
-  }
-  
-  .product-category-header {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #2d3748;
-    margin-bottom: 0.5rem;
-  }
-  
-  /* Payment Buttons Section */
+
   .payment-buttons {
+    position: sticky;
+    bottom: 0;
+    background-color: white;
+    width: 100%;
     padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    gap: 0.75rem;
+    z-index: 10;
   }
-  
-  .payment-button {
-    flex: 1;
-    padding: 0.75rem;
-    background-color: #3182ce;
-    color: white;
-    border-radius: 6px;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
+
+  /* Reduce button sizes for smaller screens */
+  .payment-buttons button {
+    font-size: 0.875rem;
+    padding: 0.5rem;
   }
-  
-  .payment-button:hover {
-    background-color: #2b6cb0;
+
+  /* Make the product buttons smaller for tablet view */
+  .product-item {
+    width: 48%; /* Adjust width to fit two items in a row */
+    min-width: unset;
   }
-  
-  .payment-button.green {
-    background-color: #38a169;
+}
+
+/* Mobile View Adjustments */
+@media (max-width: 768px) {
+  .cart-section, .product-list-section {
+    height: 50%;
   }
-  
-  .payment-button.green:hover {
-    background-color: #2f855a;
-  }
-  
-  /* Modal for Payment */
-  .modal-content {
-    padding: 1.5rem;
-  }
-  
-  .modal-label {
-    font-size: 1rem;
-    font-weight: 600;
+
+  .product-item {
+    width: 100%; /* One item per row on small screens */
     margin-bottom: 0.5rem;
   }
-  
-  .modal-input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-  }
-  
-  /* Transaction Modal */
-  .transaction-items {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  .transaction-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.75rem 0;
-    font-weight: 600;
-  }
-  
-  .transaction-item + .transaction-item {
-    border-top: 1px dashed #e2e8f0;
-  }
-  
-  .transaction-date {
-    text-align: right;
-    font-size: 0.875rem;
-    color: #718096;
-    margin-bottom: 1rem;
-  }
-  
-  /* Print Button */
-  .print-button {
-    display: flex;
-    justify-content: center;
-    margin-top: 1.5rem;
-  }
-  
-  .print-button button {
-    padding: 0.75rem 1.5rem;
-    background-color: #3182ce;
-    color: white;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-  }
-  
-  .print-button button:hover {
-    background-color: #2b6cb0;
-  }
-  
-  /* Responsive Design for smaller devices */
-  @media (max-width: 768px) {
-    .cart-items,
-    .product-grid {
-      max-height: 60%;
-    }
-  
-    .product-item {
-      width: 100%;
-    }
-  
-    .product-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  
-    .payment-buttons {
-      flex-direction: column;
-    }
-  }
-  
+}
