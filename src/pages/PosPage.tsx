@@ -100,7 +100,7 @@ const PosPage: React.FC = () => {
       <div className="h-screen w-screen flex items-center justify-center overflow-hidden bg-gray-100 pb-5">
         <div className="bg-white border border-gray-300 rounded-lg shadow-xl w-full max-w-screen-2xl h-full flex flex-col md:flex-row">
           {/* Cart Section */}
-          <div className="w-full md:w-3/5 p-2 h-full flex flex-col bg-white">
+          <div className="w-full md:w-2/5 p-2 h-full flex flex-col bg-white">
             {/* Cart Items Container */}
             <div className="flex-grow overflow-y-auto p-2 max-h-[83%]">
               <Cart cartItems={cart} onIncrease={increaseQuantity} onDecrease={decreaseQuantity} onRemove={removeFromCart} />
@@ -113,7 +113,7 @@ const PosPage: React.FC = () => {
           </div>
 
           {/* Product List Section */}
-          <div className="w-full md:w-2/5 p-2 h-full flex flex-col border-l border-gray-200">
+          <div className="w-full md:w-3/5 p-2 h-full flex flex-col border-l border-gray-200">
             {/* Product List */}
             <div className="flex-grow p-2 sm:grid-cols-3 gap-4 overflow-y-hidden max-h-[83%]">
               {/* {products.map((product) => (
@@ -128,12 +128,12 @@ const PosPage: React.FC = () => {
                   <h5 className="text-lg font-semibold text-gray-700 mb-2 pl-2 border-l-4 border-blue-500">{category}</h5>
 
                   {/* Product Buttons in a Horizontal Row with Wrapping */}
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2">
                     {groupedProducts[category].map((product) => (
                       <button
                         key={product.id}
                         onClick={() => addToCart(product)}
-                        className="bg-blue-500 text-white p-3 rounded-md shadow-sm hover:bg-blue-600 transition duration-200 ease-in-out w-[25%] min-w-[180px] h-[70px] flex items-center justify-center text-center text-sm" // Uniform size and text adjustments
+                        className="bg-blue-500 text-white p-3 rounded-md shadow-sm hover:bg-blue-600 transition duration-200 ease-in-out w-[20%] min-w-[180px] h-[70px] flex items-center justify-center text-center text-sm" // Uniform size and text adjustments
                       >
                         <div className="flex flex-col items-center justify-center">
                           <span className="font-medium truncate">{product.name}</span> {/* `truncate` ensures text doesn't overflow */}
