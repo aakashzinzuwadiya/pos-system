@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/pos-system/static/css/main.2fb1053c.css",
-    "main.js": "/pos-system/static/js/main.df390515.js",
+    "main.css": "/pos-system/static/css/main.50785590.css",
+    "main.js": "/pos-system/static/js/main.b945155a.js",
     "index.html": "/pos-system/index.html",
-    "main.2fb1053c.css.map": "/pos-system/static/css/main.2fb1053c.css.map",
-    "main.df390515.js.map": "/pos-system/static/js/main.df390515.js.map"
+    "main.50785590.css.map": "/pos-system/static/css/main.50785590.css.map",
+    "main.b945155a.js.map": "/pos-system/static/js/main.b945155a.js.map"
   },
   "entrypoints": [
-    "static/css/main.2fb1053c.css",
-    "static/js/main.df390515.js"
+    "static/css/main.50785590.css",
+    "static/js/main.b945155a.js"
   ]
 }
