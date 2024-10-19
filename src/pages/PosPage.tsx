@@ -9,13 +9,13 @@ import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 import { Product } from 'types';
 
 import './PosPage.css';
+import TransactionDetailsModal from 'components/TransactionDetailsModal';
 
 const PosPage: React.FC = () => {
   const {
     products,
     fetchProducts,
     cart,
-    change,
     addToCart,
     clearCart,
     increaseQuantity,
@@ -29,7 +29,6 @@ const PosPage: React.FC = () => {
   const [cashReceived, setCashReceived] = useState(0);
   const [showCashModal, setShowCashModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [showChangeInModal, setShowChangeInModal] = useState(false);
   const [loading, setLoading] = useState(false); // Loading state
 
   const currencySymbol = process.env.REACT_APP_CURRENCY_SYMBOL || '$';
@@ -61,13 +60,11 @@ const PosPage: React.FC = () => {
     await handleCashPayment(cashReceived);
     setShowCashModal(false);
     setShowTransactionModal(true); // Show transaction modal after cash payment
-    setShowChangeInModal(true); // Set this to true to show the change in the modal
     setLoading(false); // Set loading to false when operation ends
   };
 
   // Handle printing
   const handlePrint = () => {
-    setShowChangeInModal(false); // Hide the change when printing
     setTimeout(() => window.print(), 100); // Print after a short delay to allow state to update
   };
 
@@ -77,13 +74,12 @@ const PosPage: React.FC = () => {
     clearCart(); // Function to clear the cart items
     toast.success('Cart cleared successfully!'); // Optional: Show a toast notification
   };
-  
+
 
   // Reset states after transactions
   const resetStates = () => {
     setCashReceived(0);
     setShowTransactionModal(false);
-    setShowChangeInModal(false);
   };
 
   // Group products by category
@@ -191,49 +187,21 @@ const PosPage: React.FC = () => {
       </div>
 
       {/* Modal for Cash Payment Details */}
-      <Modal isOpen={showCashModal} onClose={() => setShowCashModal(false)} title="Cash Payment Details">
+      <Modal isOpen={showCashModal} onClose={() => setShowCashModal(false)} title="Cash Payment Details" buttonLabel={'Confirm Payment'} handleButton={handleCashTransaction}>
         <div className="p-4">
           <label className="block text-lg font-semibold mb-2">Total Amount: {currencySymbol}{cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}</label>
           <label className="block text-lg font-semibold mb-2">Cash Received:</label>
           <input type="number" value={cashReceived} onChange={(e) => setCashReceived(parseFloat(e.target.value))} className="w-full p-2 border border-gray-300 rounded-md" />
           <div className="mt-4 text-lg font-semibold">Change: {currencySymbol}{(cashReceived - cart.reduce((total, item) => total + item.price * item.quantity, 0)).toFixed(2)}</div>
-          <button onClick={handleCashTransaction} className="mt-4 bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600 transition">
-            Confirm Payment
-          </button>
         </div>
       </Modal>
 
       {/* Modal for Transaction Details After Payment */}
-      <Modal isOpen={showTransactionModal} onClose={resetStates} title={savedTransaction?.orderId || "Order Details"}>
-        {savedTransaction && (
-          <div className="p-4">
-            {/* Date and Time on Top Right */}
-            <div className="text-sm font-semibold mb-2 flex justify-end w-full">
-              {/* Date aligned to the right */}
-              <span className="text-right">
-                {savedTransaction && new Date(savedTransaction.date.toMillis()).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}
-              </span>
-            </div>
-
-            {/* Transaction Items List */}
-            <ul className="space-y-2">
-              {savedTransaction.items.map((item) => (
-                <li key={item.id} className="border-b border-dashed py-2 flex justify-between text-lg font-bold text-gray-800">
-                  <span>{item.name}</span>
-                  <span>{item.quantity}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* Print Button */}
-            <div className="mt-4 flex justify-center">
-              <button onClick={handlePrint} className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 transition">
-                Print
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
+      <TransactionDetailsModal
+        transaction={savedTransaction}
+        isOpen={showTransactionModal}
+        onClose={() => resetStates()}
+      />
     </>
   );
 };

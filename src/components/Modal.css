@@ -1,0 +1,102 @@
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 50;
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  /* Ensure the modal doesn't exceed 90% of the viewport height */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Prevent overflow from spilling out */
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Close Button */
+.modal-close {
+  font-size: 1.5rem;
+  color: #4a5568;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #2d3748;
+}
+
+/* Scrollable Content Area */
+.modal-body {
+  overflow-y: auto;
+  flex-grow: 1;
+  /* Make this section take up the remaining space */
+}
+
+/* Footer or any bottom elements */
+.modal-footer {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+/* Print styles to remove scrollbars and adjust layout */
+@media print {
+
+  .modal-content {
+    max-height: unset;
+    /* Remove height restrictions for print */
+    overflow: visible;
+    /* Ensure all content is visible */
+    box-shadow: none;
+    /* Remove shadows for clean print */
+    width: 100%;
+    /* Expand to fit full width of the page */
+    padding: 0;
+    /* Remove padding for print */
+  }
+
+  .modal-body {
+    overflow: visible;
+    /* Ensure no scrollbar is shown */
+    max-height: none;
+    /* Allow content to fully expand for printing */
+  }
+
+  /* Optionally hide other elements like buttons */
+  .modal-close,
+  .modal-footer {
+    display: none;
+    /* Don't show close button and footer when printing */
+  }
+
+  /* Adjust font sizes and margins for print */
+  h2,
+  span,
+  p,
+  li {
+    font-size: 12pt;
+    /* Ensure readable font size for print */
+  }
+}
