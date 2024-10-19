@@ -68,10 +68,15 @@ const NavBar: React.FC = () => {
     <nav className="bg-blue-600 text-white px-4 py-3 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
         {/* Live Time Display - Left Aligned */}
-        <div className="flex items-center">
+        <div className="flex items-center w-full">
           <FontAwesomeIcon icon={faClock} className="mr-2" />
           <span className="text-lg font-semibold">{currentTime}</span>
         </div>
+
+        {user && <div className="flex justify-end items-center w-full">
+          <FontAwesomeIcon icon={faUser} className="mr-2" />
+          {user.email}
+        </div>}
 
         {/* Hamburger Menu Icon for small screens */}
         <button
@@ -96,8 +101,6 @@ const NavBar: React.FC = () => {
                   onClick={toggleDropdown}
                   className="flex items-center w-full md:w-auto px-4 py-2 hover:bg-blue-500 md:hover:bg-transparent focus:outline-none"
                 >
-                  <FontAwesomeIcon icon={faUser} className="mr-2" />
-                  {user.email}
                   <FontAwesomeIcon icon={faChevronDown} className="ml-2" />
                 </button>
 
