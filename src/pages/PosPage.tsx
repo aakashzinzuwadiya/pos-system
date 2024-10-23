@@ -30,8 +30,19 @@ const PosPage: React.FC = () => {
   const [showCashModal, setShowCashModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [loading, setLoading] = useState(false); // Loading state
+  const [activeCategory, setActiveCategory] = useState('All'); // State to track selected category
 
   const currencySymbol = process.env.REACT_APP_CURRENCY_SYMBOL || '$';
+
+  // Color mapping for different categories
+  const categoryColors: { [key: string]: string } = {
+    Beverages: 'bg-indigo-600',       // Indigo for a rich, calm tone
+    Food: 'bg-teal-500',            // Teal for a refreshing, modern look
+    Desserts: 'bg-rose-600',
+    Uncategorized: 'bg-gray-500',
+    // Add more categories and their respective colors
+    All: 'bg-gray-300', // Default color for the "All" category
+  };
 
   const handlePayment = async (paymentMethod: string) => {
     if (cart.length === 0) {
@@ -47,42 +58,30 @@ const PosPage: React.FC = () => {
         await handleCardPayment(paymentMethod);
         setShowTransactionModal(true);
       }
-
     } catch (error) {
-      toast.error('Failed to process payment. Please try again.'); // Show error message
+      toast.error('Failed to process payment. Please try again.');
     }
     setLoading(false);
   };
 
-  // Handle cash transactions
   const handleCashTransaction = async () => {
-    setLoading(true); // Set loading to true when operation starts
+    setLoading(true);
     await handleCashPayment(cashReceived);
     setShowCashModal(false);
-    setShowTransactionModal(true); // Show transaction modal after cash payment
-    setLoading(false); // Set loading to false when operation ends
-  };
-
-  // Handle printing
-  const handlePrint = () => {
-    setTimeout(() => window.print(), 100); // Print after a short delay to allow state to update
+    setShowTransactionModal(true);
+    setLoading(false);
   };
 
   const handleClearCart = () => {
-    // Assuming your cart management logic allows for clearing
-    // Example: If using state, you can reset the cart to an empty array.
-    clearCart(); // Function to clear the cart items
-    toast.success('Cart cleared successfully!'); // Optional: Show a toast notification
+    clearCart();
+    toast.success('Cart cleared successfully!');
   };
 
-
-  // Reset states after transactions
   const resetStates = () => {
     setCashReceived(0);
     setShowTransactionModal(false);
   };
 
-  // Group products by category
   const groupedProducts = products.reduce<{ [key: string]: Product[] }>((acc, product) => {
     const category = product.category || 'Uncategorized';
     if (!acc[category]) acc[category] = [];
@@ -90,36 +89,36 @@ const PosPage: React.FC = () => {
     return acc;
   }, {});
 
+  const categories = ['All', ...Object.keys(groupedProducts)];
+
   useEffect(() => {
     fetchProducts();
   }, []);
 
   return (
     <>
-      <NavBar />
-
       <ToastContainer />
-      {/* Show Loading Indicator if loading is true */}
       {loading && <Loading />}
 
-      <div className="h-screen w-screen flex items-center justify-center overflow-hidden bg-gray-100 pb-5">
-        <div className="bg-white border border-gray-300 rounded-lg shadow-xl w-full max-w-screen-2xl h-full flex flex-col md:flex-row">
+      <div className="h-screen w-screen flex flex-col overflow-hidden bg-gray-100">
+        {/* Navigation */}
+        <NavBar />
+
+        <div className="flex-grow flex flex-col md:flex-row overflow-hidden">
           {/* Cart Section */}
           <div className="w-full md:w-2/5 p-2 h-full flex flex-col bg-white">
             {/* Cart Items Container */}
-            <div className="flex-grow overflow-y-auto p-2 max-h-[83%]">
+            <div className="flex-grow overflow-y-auto p-2">
               <Cart cartItems={cart} onIncrease={increaseQuantity} onDecrease={decreaseQuantity} onRemove={removeFromCart} />
             </div>
 
-            <div className="border-t border-gray-300 p-4 flex justify-between items-center text-sm font-semibold text-gray-700 pb-4">
-              {/* Clear Cart Button aligned to the left */}
+            <div className="border-t border-gray-300 p-4 flex justify-between items-center text-sm font-semibold text-gray-700">
               <button
-                onClick={() => handleClearCart()}
+                onClick={handleClearCart}
                 className="bg-red-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-red-600 transition duration-150 ease-in-out">
                 Clear Cart
               </button>
 
-              {/* Total value aligned to the right */}
               <div className="flex items-center">
                 <span className="mr-4">Total:</span>
                 <span className="text-green-600">
@@ -128,57 +127,49 @@ const PosPage: React.FC = () => {
                 </span>
               </div>
             </div>
-
           </div>
 
           {/* Product List Section */}
           <div className="w-full md:w-3/5 p-2 h-full flex flex-col border-l border-gray-200">
-            {/* Product List */}
-            <div className="flex-grow p-2 sm:grid-cols-3 gap-4 overflow-y-hidden max-h-[83%]">
-              {/* {products.map((product) => (
-                <button key={product.id} onClick={() => addToCart(product)} className="bg-blue-600 text-white p-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 ease-in-out">
-                  <span className="block font-medium">{product.name}</span>
-                  <span className="block mt-1">{currencySymbol}{product.price.toFixed(2)}</span>
+            {/* Category Tabs */}
+            <div className="flex border-b border-gray-300 mb-4 overflow-x-auto">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`px-4 py-2 text-sm font-semibold text-gray-600 ${activeCategory === category ? 'text-blue-500 border-b-2 border-blue-500' : 'hover:text-blue-400'}`}>
+                  {category}
                 </button>
-              ))} */}
-              {Object.keys(groupedProducts).map((category) => (
-                <div key={category} className="mb-2 pb-2"> {/* Added border for visual separation */}
-                  {/* Category Header */}
-                  <h5 className="text-lg font-semibold text-gray-700 mb-2 pl-2 border-l-4 border-blue-500">{category}</h5>
-
-                  {/* Product Buttons in a Horizontal Row with Wrapping */}
-                  <div className="flex flex-wrap gap-2">
-                    {groupedProducts[category].map((product) => (
-                      <button
-                        key={product.id}
-                        onClick={() => addToCart(product)}
-                        className="bg-blue-500 text-white p-3 rounded-md shadow-sm hover:bg-blue-600 transition duration-200 ease-in-out w-[20%] min-w-[180px] h-[70px] flex items-center justify-center text-center text-sm" // Uniform size and text adjustments
-                      >
-                        <div className="flex flex-col items-center justify-center">
-                          <span className="font-medium truncate">{product.name}</span> {/* `truncate` ensures text doesn't overflow */}
-                          <span className="mt-1 text-sm text-yellow-200">
-                            {currencySymbol}
-                            {product.price.toFixed(2)}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
               ))}
-
-
             </div>
 
-            {/* Payment Options Buttons */}
-            <div className="flex border-t border-gray-300 p-4 justify-between gap-2 mt-2">
+            {/* Product List with Scrolling */}
+            <div className="flex-grow p-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto auto-rows-min">
+              {(activeCategory === 'All' ? products : groupedProducts[activeCategory] || []).map((product) => (
+                <button
+                  key={product.id}
+                  onClick={() => addToCart(product)}
+                  className={`${categoryColors[product.category] || 'bg-gray-500'} text-white p-3 rounded-md shadow-sm hover:bg-opacity-80 transition duration-200 ease-in-out flex items-center justify-center text-center text-sm`}>
+                  <div className="flex flex-col items-center justify-center">
+                    <span className="font-medium truncate">{product.name}</span>
+                    <span className="mt-1 text-sm text-yellow-200">
+                      {currencySymbol}
+                      {product.price.toFixed(2)}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Payment Options - Stick to Bottom in Mobile View */}
+            <div className="flex border-t border-gray-300 p-4 justify-between gap-2 md:relative md:mt-auto fixed bottom-0 left-0 right-0 bg-white md:bg-transparent">
               <button onClick={() => handlePayment('Card')} className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 transition">
                 Card
               </button>
               <button onClick={() => handlePayment('Cash')} className="flex-1 bg-green-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-green-600 transition">
                 Cash
               </button>
-              <button onClick={() => handlePayment('Guest')} className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 transition">
+              <button onClick={() => handlePayment('Guest')} className="flex-1 bg-yellow-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 transition">
                 Guest
               </button>
             </div>
@@ -197,11 +188,7 @@ const PosPage: React.FC = () => {
       </Modal>
 
       {/* Modal for Transaction Details After Payment */}
-      <TransactionDetailsModal
-        transaction={savedTransaction}
-        isOpen={showTransactionModal}
-        onClose={() => resetStates()}
-      />
+      <TransactionDetailsModal transaction={savedTransaction} isOpen={showTransactionModal} onClose={() => resetStates()} />
     </>
   );
 };

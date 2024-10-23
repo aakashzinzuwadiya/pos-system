@@ -20,7 +20,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
   // Calculate the total number of pages
   const totalPages = Math.ceil(products.length / itemsPerPage);
 
-  // Get the transactions to display on the current page
+  // Get the products to display on the current page
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
@@ -89,24 +89,32 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex justify-center items-center mt-4 space-x-4">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md shadow-md hover:bg-gray-400 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Previous
-        </button>
-        <span className="font-semibold text-gray-700">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md shadow-md hover:bg-gray-400 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-        </button>
+      <div className="flex justify-between items-center mt-4">
+        {/* Show total records out of records being shown */}
+        <div className="text-gray-700 text-sm">
+          {`Showing ${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, products.length)} of ${products.length} products`}
+        </div>
+
+        {/* Pagination Buttons */}
+        <div className="flex space-x-4">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md shadow-md hover:bg-gray-400 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="font-semibold text-gray-700">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md shadow-md hover:bg-gray-400 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

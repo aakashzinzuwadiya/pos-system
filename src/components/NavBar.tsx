@@ -1,16 +1,13 @@
-// src/components/NavBar.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { auth } from 'firebaseConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faTimes, faUser, faSignOutAlt, faUsers, faChevronDown, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faTimes, faUser, faSignOutAlt, faClock } from '@fortawesome/free-solid-svg-icons';
 
 const NavBar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false); // State to manage menu collapse
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State to manage dropdown visibility
+  const [isOpen, setIsOpen] = useState(false); // State to manage drawer visibility
   const [currentTime, setCurrentTime] = useState(''); // State to track current time
-  const dropdownRef = useRef<HTMLLIElement>(null); // Reference to the dropdown menu with correct type
   const { user, isAdmin } = useAuth(); // Get user and admin info from AuthContext
   const navigate = useNavigate();
 
@@ -31,22 +28,6 @@ const NavBar: React.FC = () => {
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, []);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    // Add event listener for clicks
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      // Remove event listener on cleanup
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [dropdownRef]);
-
   const handleLogout = async () => {
     try {
       await auth.signOut(); // Log out the user
@@ -56,12 +37,8 @@ const NavBar: React.FC = () => {
     }
   };
 
-  const toggleMenu = () => {
+  const toggleDrawer = () => {
     setIsOpen(!isOpen);
-  };
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
   };
 
   return (
@@ -73,135 +50,90 @@ const NavBar: React.FC = () => {
           <span className="text-lg font-semibold">{currentTime}</span>
         </div>
 
-        {user && <div className="flex justify-end items-center w-full">
-          <FontAwesomeIcon icon={faUser} className="mr-2" />
-          {user.email}
-        </div>}
-
-        {/* Hamburger Menu Icon for small screens */}
+        {/* Hamburger Menu Icon */}
         <button
-          className="text-white md:hidden"
-          onClick={toggleMenu}
-          aria-label="Toggle Menu"
+          className="text-white"
+          onClick={toggleDrawer}
+          aria-label="Toggle Drawer"
         >
           <FontAwesomeIcon icon={isOpen ? faTimes : faBars} size="lg" />
         </button>
 
-        {/* Collapsible Menu */}
+        {/* Drawer */}
         <div
-          className={`md:flex md:items-center md:space-x-6 absolute md:relative top-16 md:top-0 left-0 w-full md:w-auto bg-blue-600 md:bg-transparent transition-all duration-300 ease-in-out ${isOpen ? 'block' : 'hidden md:block'
-            }`}
+          className={`fixed top-0 right-0 w-64 h-full bg-blue-600 shadow-lg z-50 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'
+            } transition-transform duration-300 ease-in-out`}
         >
-          <ul className="flex flex-col md:flex-row md:space-x-6 md:ml-auto">
-            {/* Combined Dropdown Menu */}
-            {user && (
-              <li className="relative" ref={dropdownRef}>
-                {/* Main Dropdown Menu Item */}
-                <button
-                  onClick={toggleDropdown}
-                  className="flex items-center w-full md:w-auto px-4 py-2 hover:bg-blue-500 md:hover:bg-transparent focus:outline-none"
-                >
-                  <FontAwesomeIcon icon={faChevronDown} className="ml-2" />
-                </button>
+          {/* Drawer Header */}
+          <div className="flex justify-between items-center p-4 border-b border-blue-700">
+            <h2 className="text-xl font-semibold text-white">Menu</h2>
+            <button onClick={toggleDrawer} className="text-white">
+              <FontAwesomeIcon icon={faTimes} size="lg" />
+            </button>
+          </div>
 
-                {/* Dropdown Submenu */}
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-full md:w-48 bg-white text-gray-800 shadow-lg rounded-lg z-20">
-                    <ul className="flex flex-col p-2">
-                      {isAdmin && (
-                        <li
-                          className="hover:bg-gray-200 rounded-md px-4 py-2 cursor-pointer w-full"
-                          onClick={() => {
-                            setIsDropdownOpen(false);
-                            navigate('/admin'); // Use navigate to redirect
-                          }}
-                        >
-                          <div className="flex items-center w-full h-full">
-                            <Link className="w-full h-full" to="/admin">
-                              Admin Dashboard
-                            </Link>
-                          </div>
-                        </li>
-                      )}
+          {/* User Info at the top of the drawer */}
+          {user && (
+            <div className="p-4 flex items-center border-b border-blue-700">
+              <FontAwesomeIcon icon={faUser} className="mr-2" />
+              <span className="text-white">{user.email}</span>
+            </div>
+          )}
 
-                      <li
-                        className="hover:bg-gray-200 rounded-md px-4 py-2 cursor-pointer w-full"
-                        onClick={() => {
-                          setIsDropdownOpen(false);
-                          navigate('/pos'); // Use navigate to redirect
-                        }}
-                      >
-                        <div className="flex items-center w-full h-full">
-                          <Link className="w-full h-full" to="/pos">
-                            POS
-                          </Link>
-                        </div>
-                      </li>
-
-                      {!isAdmin && (
-                        <li
-                          className="hover:bg-gray-200 rounded-md px-4 py-2 cursor-pointer w-full"
-                          onClick={() => {
-                            setIsDropdownOpen(false);
-                            navigate('/transactions'); // Use navigate to redirect
-                          }}
-                        >
-                          <div className="flex items-center w-full h-full">
-                            <Link className="w-full h-full" to="/transactions">
-                              Transactions
-                            </Link>
-                          </div>
-                        </li>
-                      )}
-
-                      {isAdmin && (
-                        <li
-                          className="hover:bg-gray-200 rounded-md px-4 py-2 cursor-pointer w-full"
-                          onClick={() => {
-                            setIsDropdownOpen(false);
-                            navigate('/analytics'); // Use navigate to redirect
-                          }}
-                        >
-                          <div className="flex items-center w-full h-full">
-                            <Link className="w-full h-full" to="/analytics">
-                              Reports
-                            </Link>
-                          </div>
-                        </li>
-                      )}
-
-
-                      {/* Logout Button */}
-                      <li
-                        className="hover:bg-gray-200 rounded-md px-4 py-2 cursor-pointer w-full"
-                        onClick={() => {
-                          handleLogout();
-                          setIsDropdownOpen(false);
-                        }}
-                      >
-                        <div className="flex items-center w-full h-full">
-                          <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
-                          Logout
-                        </div>
-                      </li>
-                    </ul>
-
-                  </div>
-                )}
+          {/* Drawer Content */}
+          <ul className="flex flex-col p-4 space-y-4">
+            {isAdmin && (
+              <li
+                className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate('/admin');
+                }}
+              >
+                Admin Dashboard
               </li>
             )}
-
-            {/* Show Login button for unauthenticated users */}
-            {!user && (
-              <li>
-                <Link
-                  to="/login"
-                  className="block px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg shadow md:ml-auto"
-                >
-                  Login
-                </Link>
+            <li
+              className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
+              onClick={() => {
+                setIsOpen(false);
+                navigate('/pos');
+              }}
+            >
+              POS
+            </li>
+            {!isAdmin && (
+              <li
+                className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate('/transactions');
+                }}
+              >
+                Transactions
               </li>
             )}
+            {isAdmin && (
+              <li
+                className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate('/analytics');
+                }}
+              >
+                Reports
+              </li>
+            )}
+            <li
+              className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
+              onClick={() => {
+                handleLogout();
+                setIsOpen(false);
+              }}
+            >
+              <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
+              Logout
+            </li>
           </ul>
         </div>
       </div>

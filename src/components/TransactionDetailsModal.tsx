@@ -21,7 +21,7 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
   if (!transaction) return null; // If no transaction, don't render anything
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={transaction?.orderId || 'Order Details'} handleButton={handlePrint}>
+    <Modal isOpen={isOpen} onClose={onClose} title={transaction?.orderId || 'Order Details'} handleButton={handlePrint} showButton={true}>
       <div className="p-4">
         {/* Transaction Items List */}
         <ul className="space-y-2">

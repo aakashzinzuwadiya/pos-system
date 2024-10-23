@@ -33,11 +33,11 @@ const TransactionPage: React.FC = () => {
     <>
       <NavBar />
       {/* Outer Container */}
-      <div className="h-screen w-screen pb-10">
+      <div className="h-screen w-screen pt-[1%] pb-[5%]">
         {/* Flex container for layout control */}
-        <div className="h-full flex flex-col items-center justify-center overflow-hidden">
+        <div className="h-full w-full flex flex-col items-center justify-center overflow-hidden">
           {/* Transaction List Container with scroll */}
-          <div className="w-full max-w-screen-lg h-full flex flex-col overflow-hidden bg-white border border-gray-300 rounded-lg shadow-md">
+          <div className="w-full max-w-screen-lg h-full flex flex-col overflow-hidden">
             <div className="flex-grow overflow-y-auto p-4">
               <TransactionList
                 transactions={transactions}

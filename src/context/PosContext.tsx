@@ -23,6 +23,7 @@ interface PosContextProps {
   handleCardPayment: (paymentMethod: string) => void;
   handleDeleteTransaction: (id: string) => Promise<void>;
   getProductAnalytics: () => ProductAnalyticsType[];
+  getDaySalesTimestamps: (date: Date) => Promise<{ startOfDaySale: Date | null, endOfDaySale: Date | null }>; // Update this type
 }
 
 // Create context
@@ -199,7 +200,35 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return analytics;
   };
 
-
+  const getDaySalesTimestamps = async (date: Date): Promise<{ startOfDaySale: Date | null, endOfDaySale: Date | null }> => {
+    // Create start and end times for the given date
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0); // Start of the day (00:00:00)
+  
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999); // End of the day (23:59:59)
+  
+    // Query the transactions for the given day
+    const dayTransactions = transactions.filter((transaction) => {
+      const transactionDate = new Date(transaction.date.toMillis());
+      return transactionDate >= startOfDay && transactionDate <= endOfDay;
+    });
+  
+    // If there are no transactions for the given day, return null values
+    if (dayTransactions.length === 0) {
+      return { startOfDaySale: null, endOfDaySale: null };
+    }
+  
+    // Sort the transactions based on the date to find the first and last transaction of the day
+    const sortedTransactions = dayTransactions.sort((a, b) => a.date.toMillis() - b.date.toMillis());
+  
+    // The first transaction in the sorted array is the start of the day, and the last transaction is the end of the day
+    const startOfDaySale = new Date(sortedTransactions[0].date.toMillis());
+    const endOfDaySale = new Date(sortedTransactions[sortedTransactions.length - 1].date.toMillis());
+  
+    return { startOfDaySale, endOfDaySale };
+  };
+  
 
   return (
     <PosContext.Provider
@@ -221,6 +250,7 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         fetchTransactions,
         handleDeleteTransaction, // Provide the delete handler in context
         getProductAnalytics,
+        getDaySalesTimestamps,
       }}
     >
       {children}

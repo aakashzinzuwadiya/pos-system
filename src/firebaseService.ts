@@ -44,11 +44,14 @@ export const deleteProduct = async (id: string) => {
 // Fetch all products from Firestore
 export const getProducts = async (): Promise<Product[]> => {
   try {
-    const productsSnapshot = await getDocs(productsCollection);
+    // Query products ordered by category
+    const productsQuery = query(productsCollection, orderBy('category', 'asc')); // 'asc' for ascending order, 'desc' for descending
+    const productsSnapshot = await getDocs(productsQuery);
+
     return productsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Product)); // Type cast the response as Product[]
   } catch (error) {
-    console.error("Error fetching products: ", error);
-    throw new Error("Failed to fetch products");
+    console.error('Error fetching products: ', error);
+    throw new Error('Failed to fetch products');
   }
 };
 

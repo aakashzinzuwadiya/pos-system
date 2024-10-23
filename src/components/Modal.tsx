@@ -8,9 +8,10 @@ interface ModalProps {
   children: React.ReactNode;
   handleButton?: () => void;
   buttonLabel?: string;
+  showButton?: boolean;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, handleButton, buttonLabel= 'Print' }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, handleButton, buttonLabel= 'Print', showButton= false }) => {
 
   if (!isOpen) return null;
 
@@ -28,12 +29,12 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, handleB
         </div>
 
         {/* Optional Footer */}
-        <div className="modal-footer">
+        {showButton && <div className="modal-footer">
           {/* Print Button */}
               <button onClick={handleButton} className="bg-blue-500 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-600 transition">
                 {buttonLabel}
               </button>
-        </div>
+        </div>}
       </div>
     </div>
   );
