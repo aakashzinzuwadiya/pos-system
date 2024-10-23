@@ -1,9 +1,10 @@
 // src/firebaseService.ts
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, orderBy, query, limit, getDoc, setDoc } from "firebase/firestore";
-import { auth, db } from "./firebaseConfig";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, orderBy, query, getFirestore, getDoc } from "firebase/firestore";
+import { auth, db, app } from "./firebaseConfig";
 import { Product, Transaction, User } from "./types"; // Import Product type
-import { createUserWithEmailAndPassword, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 
+const firestore = getFirestore(app);
 // Firestore collection references
 const productsCollection = collection(db, "products");
 const transactionsCollection = collection(db, "transactions");
@@ -117,25 +118,21 @@ export const getUsers = async (): Promise<User[]> => {
 };
 
 // Updated addUser function to create user in Firebase Authentication and Firestore
-export const addUser = async (user: Omit<User, 'id'> & { password: string }): Promise<string> => {
+export const addUser = async (user: Omit<User, 'password'>) => {
   try {
-    // Create user in Firebase Authentication
-    const userCredential = await createUserWithEmailAndPassword(auth, user.email, user.password);
-    const userId = userCredential.user.uid;
-
-    // Create user in Firestore (without the password field)
-    const userData: Omit<User, 'id'> = {
-      email: user.email,
-      role: user.role,
-    };
-    await setDoc(doc(db, 'users', userId), userData);
-
-    return userId;
+      const usersCollectionRef = collection(firestore, 'users');
+      const userRef = await addDoc(usersCollectionRef, {
+          email: user.email,
+          role: user.role,
+          id: user.id, // Store Firebase Auth UID as user ID
+      });
+      return userRef.id;
   } catch (error) {
-    console.error('Failed to add user:', error);
-    throw error;
+      console.error('Error adding user to Firestore:', error);
+      throw new Error('Failed to add user');
   }
 };
+
 
 // Update an existing user
 export const updateUser = async (id: string, user: Omit<User, 'id'>) => {
@@ -150,16 +147,26 @@ export const deleteUser = async (id: string) => {
 };
 
 // Function to update user password
-export const updateUserPassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+export const updateUserPassword = async (userId: string, newPassword: string) => {
+  // Get the current user from auth context
   const user = auth.currentUser;
-  if (!user || !user.email) {
-    throw new Error('User not authenticated');
+
+  if (!user) {
+    throw new Error('No authenticated user found.');
   }
 
-  // Re-authenticate the user
-  const credential = EmailAuthProvider.credential(user.email, currentPassword);
-  await reauthenticateWithCredential(user, credential);
+  // Reauthenticate the user if required
+  // (optional) Depending on security requirements, you can ask the user for their current password to reauthenticate
+  // Example for re-authentication (optional):
+  // const credential = EmailAuthProvider.credential(user.email!, currentPassword);
+  // await reauthenticateWithCredential(user, credential);
 
-  // If re-authentication is successful, update the password
+  // Update the password in Firebase Authentication
   await updatePassword(user, newPassword);
+
+  // Update Firestore to reflect the password change (if necessary)
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, {
+    passwordUpdated: new Date().toISOString(), // You can store a timestamp instead of the password itself
+  });
 };

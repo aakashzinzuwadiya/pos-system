@@ -1,4 +1,3 @@
-// src/components/UserManagement.tsx
 import React, { useState, useEffect } from 'react';
 import { getUsers, addUser, updateUser, deleteUser, updateUserPassword } from '../firebaseService'; // Ensure updateUserPassword is implemented in firebaseService
 import { User } from '../types';
@@ -6,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrash, faKey } from '@fortawesome/free-solid-svg-icons';
 import Modal from './Modal';
 import NavBar from './NavBar';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from 'firebaseConfig';
 
 type UserRole = 'admin' | 'user';
@@ -14,8 +13,9 @@ type UserRole = 'admin' | 'user';
 const UserManagement: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [selectedUserForPassword, setSelectedUserForPassword] = useState<User | null>(null); // Track selected user for password update
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false); // Track password modal visibility
     const [newUserEmail, setNewUserEmail] = useState('');
     const [newUserRole, setNewUserRole] = useState<UserRole>('user');
     const [newUserPassword, setNewUserPassword] = useState('');
@@ -31,6 +31,17 @@ const UserManagement: React.FC = () => {
         fetchUsers();
     }, []);
 
+    // Function to open password update modal
+    const handleOpenPasswordModal = (user: User) => {
+        setSelectedUserForPassword(user); // Set the user whose password is being updated
+        setIsPasswordModalOpen(true); // Open the modal
+    };
+
+    const handleClosePasswordModal = () => {
+        setSelectedUserForPassword(null); // Reset selected user
+        setIsPasswordModalOpen(false); // Close the modal
+    };
+
     const handleAddUser = async () => {
         if (!newUserEmail || !newUserPassword || !confirmPassword) {
             alert('Please fill in all fields.');
@@ -43,30 +54,17 @@ const UserManagement: React.FC = () => {
         }
 
         try {
-            // Store the original user credentials
-            // const originalUser = auth.currentUser;
-            // const originalEmail = originalUser?.email;
-            // const originalPassword = prompt('Please enter the current user password to confirm changes:');
-
-            // if (!originalEmail || !originalPassword) {
-            //     alert('Password not provided. Operation cancelled.');
-            //     return;
-            // }
-
-            // Create the new user
-            await createUserWithEmailAndPassword(auth, newUserEmail, newUserPassword);
-
-            // After creating the new user, switch back to the original user
-            // await signInWithEmailAndPassword(auth, originalEmail, originalPassword);
+            // Create the new user in Firebase Authentication
+            const userCredential = await createUserWithEmailAndPassword(auth, newUserEmail, newUserPassword);
+            const firebaseUser = userCredential.user;
 
             // Add the new user to Firestore (or wherever you store your user details)
-            const newUser: Omit<User, 'id'> & { password: string } = {
+            const newUser: Omit<User, 'id'> = {
                 email: newUserEmail,
                 role: newUserRole,
-                password: newUserPassword, // Ensure password is always a string
             };
-            await addUser({ ...newUser });
-            // setUsers([...users, { id: userId, ...newUser }]);
+
+            await addUser({ id: firebaseUser.uid, ...newUser });
 
             resetForm();
             setIsModalOpen(false);
@@ -104,41 +102,23 @@ const UserManagement: React.FC = () => {
         }
     };
 
-    // const handleOpenChangePassword = (user: User) => {
-    //     setEditingUser(user);
-    //     setNewPassword('');
-    //     setConfirmNewPassword('');
-    //     setIsPasswordModalOpen(true);
-    // };
-
     const handleChangePassword = async () => {
-        console.log('edtig Use', editingUser);
-        if (!editingUser || !newUserPassword || !confirmPassword) {
+        if (!selectedUserForPassword || !newPassword || !confirmNewPassword) {
             alert('Please fill in all fields.');
             return;
         }
 
-        if (newUserPassword !== confirmPassword) {
+        if (newPassword !== confirmNewPassword) {
             alert('Passwords do not match.');
             return;
         }
 
         try {
-            // Prompt for the current password to re-authenticate before updating
-            const currentPassword = prompt('Please enter the current password to confirm changes:');
-            if (!currentPassword) {
-                alert('Password update cancelled.');
-                return;
-            }
-
-            // Update the password using the `updateUserPassword` function
-            await updateUserPassword(currentPassword, newUserPassword);
+            await updateUserPassword(selectedUserForPassword.id, newPassword);
             alert('Password updated successfully!');
-            resetForm();
-            setIsModalOpen(false);
+            handleClosePasswordModal();
         } catch (error) {
             console.error('Failed to update password:', error);
-            alert(`Failed to update password: ${error}`);
         }
     };
 
@@ -155,10 +135,10 @@ const UserManagement: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleClose = () => {
+    const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingUser(null);
-    }
+    };
 
     return (
         <>
@@ -203,12 +183,12 @@ const UserManagement: React.FC = () => {
                                             >
                                                 <FontAwesomeIcon icon={faPen} />
                                             </button>
-                                            {/* <button
-                                                onClick={() => handleOpenChangePassword(user)}
+                                            <button
+                                                onClick={() => handleOpenPasswordModal(user)}
                                                 className="px-2 py-1 bg-yellow-500 text-white rounded-md shadow-md mx-1 hover:bg-yellow-600"
                                             >
                                                 <FontAwesomeIcon icon={faKey} />
-                                            </button> */}
+                                            </button>
                                             <button
                                                 onClick={() => handleDeleteUser(user.id)}
                                                 className="px-2 py-1 bg-red-500 text-white rounded-md shadow-md mx-1 hover:bg-red-600"
@@ -222,74 +202,80 @@ const UserManagement: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
+            </div>
 
-                {/* Modal for Adding/Editing User */}
-                <Modal isOpen={isModalOpen} onClose={handleClose} title={editingUser ? 'Edit User' : 'Add User'}>
-                    <div className="p-4">
-                        <label className="block text-sm font-medium mb-2">Email</label>
-                        <input
-                            type="email"
-                            value={newUserEmail}
-                            onChange={(e) => setNewUserEmail(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-md mb-4" />
-                        <label className="block text-sm font-medium mb-2">Role</label>
-                        <select
-                            value={newUserRole}
-                            onChange={(e) => setNewUserRole(e.target.value as UserRole)}
-                            className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                        >
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                        {!editingUser && (
-                            <>
-                                <label className="block text-sm font-medium mb-2">Password</label>
-                                <input
-                                    type="password"
-                                    value={newUserPassword}
-                                    onChange={(e) => setNewUserPassword(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-md mb-4" />
-                                <label className="block text-sm font-medium mb-2">Confirm Password</label>
-                                <input
-                                    type="password"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-md mb-4" />
-                            </>
-                        )}
-                        <button
-                            onClick={editingUser ? handleUpdateUser : handleAddUser}
-                            className="w-full bg-green-500 text-white py-2 rounded-md shadow-md hover:bg-green-600 transition"
-                        >
-                            {editingUser ? 'Update User' : 'Add User'}
-                        </button>
-                    </div>
-                </Modal>
+            {/* Modal for Adding/Editing User */}
+            <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingUser ? 'Edit User' : 'Add User'}>
+                <div className="p-4">
+                    <label className="block text-sm font-medium mb-2">Email</label>
+                    <input
+                        type="email"
+                        value={newUserEmail}
+                        onChange={(e) => setNewUserEmail(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                    />
+                    <label className="block text-sm font-medium mb-2">Role</label>
+                    <select
+                        value={newUserRole}
+                        onChange={(e) => setNewUserRole(e.target.value as UserRole)}
+                        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                    >
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    {!editingUser && (
+                        <>
+                            <label className="block text-sm font-medium mb-2">Password</label>
+                            <input
+                                type="password"
+                                value={newUserPassword}
+                                onChange={(e) => setNewUserPassword(e.target.value)}
+                                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                            />
+                            <label className="block text-sm font-medium mb-2">Confirm Password</label>
+                            <input
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                            />
+                        </>
+                    )}
+                    <button
+                        onClick={editingUser ? handleUpdateUser : handleAddUser}
+                        className="w-full bg-green-500 text-white py-2 rounded-md shadow-md hover:bg-green-600 transition"
+                    >
+                        {editingUser ? 'Update User' : 'Add User'}
+                    </button>
+                </div>
+            </Modal>
 
-                {/* Modal for Changing Password */}
-                <Modal isOpen={isPasswordModalOpen} onClose={() => setIsPasswordModalOpen(false)} title="Change Password">
-                    <div className="p-4">
-                        <label className="block text-sm font-medium mb-2">New Password</label>
-                        <input
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-md mb-4" />
-                        <label className="block text-sm font-medium mb-2">Confirm New Password</label>
-                        <input
-                            type="password"
-                            value={confirmNewPassword}
-                            onChange={(e) => setConfirmNewPassword(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-md mb-4" />
-                        <button
-                            onClick={handleChangePassword}
-                            className="w-full bg-green-500 text-white py-2 rounded-md shadow-md hover:bg-green-600 transition"
-                        >
-                            Change Password
-                        </button>
-                    </div>
-                </Modal>
-            </div></>
+            {/* Modal for Changing Password */}
+            <Modal isOpen={isPasswordModalOpen} onClose={handleClosePasswordModal} title="Change Password">
+                <div className="p-4">
+                    <label className="block text-sm font-medium mb-2">New Password</label>
+                    <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                    />
+                    <label className="block text-sm font-medium mb-2">Confirm New Password</label>
+                    <input
+                        type="password"
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                    />
+                    <button
+                        onClick={handleChangePassword}
+                        className="w-full bg-green-500 text-white py-2 rounded-md shadow-md hover:bg-green-600 transition"
+                    >
+                        Change Password
+                    </button>
+                </div>
+            </Modal>
+        </>
     );
 };
 
