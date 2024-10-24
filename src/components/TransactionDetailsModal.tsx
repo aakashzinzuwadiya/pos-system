@@ -40,18 +40,37 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
               padding: 20px; // Adjust padding to ensure content is not too cramped
               box-shadow: none; // Remove shadows or any other effects not needed in print
             }
+            .printable ul {
+              width: 100%;
+            }
+            .printable li {
+              display: flex;
+              justify-content: space-between;
+              padding: 8px 0;
+              border-bottom: 1px dashed #ccc;
+              font-size: 16px;
+              font-weight: bold;
+              color: #333;
+            }
+            .printable li span:first-child {
+              text-align: left;
+              flex: 1;
+            }
+            .printable li span:last-child {
+              text-align: right;
+              flex: 1;
+            }
           }
         `}
       </style>
-      <Modal isOpen={isOpen} onClose={onClose} title={transaction?.orderId || 'Order Details'} handleButton={handlePrint} showButton={true}>
+      <Modal className="printable" isOpen={isOpen} onClose={onClose} title={transaction?.orderId || 'Order Details'} handleButton={handlePrint} showButton={true}>
         <div className="printable p-4">
           {/* Transaction Items List */}
-          <span className="mb-10 font-bold">{transaction?.orderId}</span>
-          <ul className="space-y-2">
+          <ul className="space-y-2 mt-10">
             {transaction.items.map((item) => (
-              <li key={item.id} className="border-b border-dashed py-2 flex justify-between text-lg font-bold text-gray-800">
-                <span>{item.name}</span>
-                <span>{item.quantity}</span>
+              <li key={item.id} className="border-b border-dashed py-2 flex justify-between items-center text-lg font-bold text-gray-800">
+                <span className="flex-1 text-left">{item.name}</span> {/* Name left-aligned */}
+                <span className="flex-1 text-right">{item.quantity}</span> {/* Quantity right-aligned */}
               </li>
             ))}
           </ul>

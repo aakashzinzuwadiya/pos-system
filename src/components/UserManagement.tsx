@@ -161,7 +161,7 @@ const UserManagement: React.FC = () => {
                             <tr className="bg-gray-200 text-gray-700 text-left font-semibold">
                                 <th className="px-4 py-2 border-b">Email</th>
                                 <th className="px-4 py-2 border-b">Role</th>
-                                <th className="px-4 py-2 border-b text-center">Actions</th>
+                                {/* <th className="px-4 py-2 border-b text-center">Actions</th> */}
                             </tr>
                         </thead>
                         <tbody>
@@ -176,7 +176,7 @@ const UserManagement: React.FC = () => {
                                     <tr key={user.id} className="border-b hover:bg-gray-100">
                                         <td className="px-4 py-2">{user.email}</td>
                                         <td className="px-4 py-2">{user.role}</td>
-                                        <td className="px-4 py-2 text-center space-x-2">
+                                        {/* <td className="px-4 py-2 text-center space-x-2">
                                             <button
                                                 onClick={() => handleEditUser(user)}
                                                 className="px-2 py-1 bg-blue-500 text-white rounded-md shadow-md mx-1 hover:bg-blue-600"
@@ -195,7 +195,7 @@ const UserManagement: React.FC = () => {
                                             >
                                                 <FontAwesomeIcon icon={faTrash} />
                                             </button>
-                                        </td>
+                                        </td> */}
                                     </tr>
                                 ))
                             )}

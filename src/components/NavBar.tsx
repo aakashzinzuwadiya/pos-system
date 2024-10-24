@@ -153,7 +153,7 @@ const NavBar: React.FC = () => {
                 Reports
               </li>
             )}
-            {/* {isAdmin && (
+            {isAdmin && (
               <li
                 className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
                 onClick={() => {
@@ -163,7 +163,7 @@ const NavBar: React.FC = () => {
               >
                 Users
               </li>
-            )} */}
+            )}
             <li
               className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
               onClick={() => {

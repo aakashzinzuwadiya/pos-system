@@ -21,7 +21,7 @@ const App: React.FC = () => {
       <Route path="/pos" element={<PosPage />} />
       <Route path="/transactions" element={<TransactionPage />} />
       <Route path="/analytics" element={<ProductAnalytics />} />
-      {/* <Route path='/users' element={<UserManagement/>} /> */}
+      <Route path='/users' element={<UserManagement/>} />
       <Route path="*" element={<Navigate to={user ? (isAdmin ? '/admin' : '/pos') : '/login'} />} />
     </Routes>
   );

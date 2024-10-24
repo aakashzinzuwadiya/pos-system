@@ -2,6 +2,7 @@ import React from 'react';
 import './Modal.css';
 
 interface ModalProps {
+  className?: string;
   isOpen: boolean;
   onClose: () => void;
   title: string;
@@ -11,7 +12,7 @@ interface ModalProps {
   showButton?: boolean;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, handleButton, buttonLabel= 'Print', showButton= false }) => {
+const Modal: React.FC<ModalProps> = ({ className, isOpen, onClose, title, children, handleButton, buttonLabel= 'Print', showButton= false }) => {
 
   if (!isOpen) return null;
 
@@ -19,7 +20,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, handleB
     <div className="modal-overlay">
       <div className="modal-content">
       <div className="modal-header">
-          <h2 className="text-xl font-semibold">{title}</h2>
+          <h2 className={`text-xl font-semibold ${className || ''}`}>{title}</h2>
           <button onClick={onClose} className="modal-close">&times;</button>
         </div>
 

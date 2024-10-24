@@ -178,7 +178,8 @@ const PosPage: React.FC = () => {
       </div>
 
       {/* Modal for Cash Payment Details */}
-      <Modal isOpen={showCashModal} onClose={() => setShowCashModal(false)} title="Cash Payment Details" buttonLabel={'Confirm Payment'} handleButton={handleCashTransaction} showButton={true}>
+      <Modal isOpen={showCashModal} onClose={() => setShowCashModal(false)} title="Cash Payment Details" buttonLabel={'Confirm Payment'} handleButton={handleCashTransaction}
+        showButton={cashReceived >= cart.reduce((total, item) => total + item.price * item.quantity, 0)}>
         <div className="p-4">
           <label className="block text-lg font-semibold mb-2">Total Amount: {currencySymbol}{cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}</label>
           <label className="block text-lg font-semibold mb-2">Cash Received:</label>
