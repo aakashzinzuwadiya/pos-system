@@ -131,7 +131,7 @@ const NavBar: React.FC = () => {
             >
               POS
             </li>
-            {!isAdmin && (
+            {/* {!isAdmin && (
               <li
                 className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
                 onClick={() => {
@@ -141,7 +141,7 @@ const NavBar: React.FC = () => {
               >
                 Transactions
               </li>
-            )}
+            )} */}
             {isAdmin && (
               <li
                 className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
