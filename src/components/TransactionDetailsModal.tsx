@@ -16,6 +16,7 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
 }) => {
   const handlePrint = () => {
     window.print();
+    onClose();
   };
 
   if (!transaction) return null; // If no transaction, don't render anything
