@@ -35,10 +35,11 @@ export interface User {
 }
 
 export interface ProductAnalyticsType {
-    date: Date;
+    date: Date | null;
     productId: string;
     productName: string;
     totalQuantitySold: number;
     totalRevenue: number;
     numberOfSales: number;
+    price: number;
 }

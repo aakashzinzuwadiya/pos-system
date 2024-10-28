@@ -22,7 +22,7 @@ interface PosContextProps {
   fetchTransactions: () => void;
   handleCardPayment: (paymentMethod: string, userEmail: string) => void;
   handleDeleteTransaction: (id: string) => Promise<void>;
-  getProductAnalytics: () => ProductAnalyticsType[];
+  getProductAnalytics: (date: Date) => ProductAnalyticsType[];
   getDaySalesTimestamps: (date: Date) => Promise<{ startOfDaySale: Date | null, endOfDaySale: Date | null }>; // Update this type
 }
 
@@ -170,10 +170,10 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Assuming `products` is an array containing all products information
   // Example: [{ id: '1', name: 'Product A' }, { id: '2', name: 'Product B' }, ...]
 
-  const getProductAnalytics = (): ProductAnalyticsType[] => {
+  const getProductAnalytics = (date: Date): ProductAnalyticsType[] => {
     const analytics: ProductAnalyticsType[] = [];
 
-    // Step 1: Initialize analytics with all products, setting date to a default value (e.g., epoch date)
+    // Step 1: Initialize analytics with all products, setting date to null initially
     products.forEach((product) => {
       analytics.push({
         productId: product.id,
@@ -181,26 +181,39 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         totalQuantitySold: 0,
         totalRevenue: 0,
         numberOfSales: 0,
-        date: new Date(0), // Default date for products with no sales
+        date: null, // Set to null for products without sales on the selected date
+        price: product.price
       });
     });
 
-    // Step 2: Update analytics with transactions data
-    transactions.forEach((transaction) => {
-      transaction.items.forEach((item) => {
-        const existingProduct = analytics.find((prod) => prod.productId === item.id);
+    // Step 2: Set start and end timestamps for the specified date
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
 
-        if (existingProduct) {
-          existingProduct.totalQuantitySold += item.quantity;
-          existingProduct.totalRevenue += item.price * item.quantity;
-          existingProduct.numberOfSales += 1;
-          existingProduct.date = new Date(transaction.date.toMillis());
-        }
-      });
+    // Step 3: Filter and update analytics only with transactions from the specified date
+    transactions.forEach((transaction) => {
+      const transactionDate = new Date(transaction.date.toMillis());
+
+      // Only consider transactions within the date range
+      if (transactionDate >= startOfDay && transactionDate <= endOfDay) {
+        transaction.items.forEach((item) => {
+          const existingProduct = analytics.find((prod) => prod.productId === item.id);
+
+          if (existingProduct) {
+            existingProduct.totalQuantitySold += item.quantity;
+            existingProduct.totalRevenue += item.price * item.quantity;
+            existingProduct.numberOfSales += 1;
+            existingProduct.date = transactionDate; // Set date for transactions on the specified day
+          }
+        });
+      }
     });
 
     return analytics;
   };
+
 
   const getDaySalesTimestamps = async (date: Date): Promise<{ startOfDaySale: Date | null, endOfDaySale: Date | null }> => {
     // Create start and end times for the given date
