@@ -25,6 +25,7 @@ export interface Transaction {
     orderId: string; // Add orderId field
     isDeleted?: boolean; // New field for soft delete
     change?: number; // Add the `change` property to the Transaction type
+    email: string;
 }
 export interface User {
     id: string;

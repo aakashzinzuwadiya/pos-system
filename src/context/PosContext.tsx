@@ -18,9 +18,9 @@ interface PosContextProps {
   increaseQuantity: (id: string) => void;
   decreaseQuantity: (id: string) => void;
   removeFromCart: (id: string) => void;
-  handleCashPayment: (cashReceived: number) => void;
+  handleCashPayment: (cashReceived: number, userEmail: string) => void;
   fetchTransactions: () => void;
-  handleCardPayment: (paymentMethod: string) => void;
+  handleCardPayment: (paymentMethod: string, userEmail: string) => void;
   handleDeleteTransaction: (id: string) => Promise<void>;
   getProductAnalytics: () => ProductAnalyticsType[];
   getDaySalesTimestamps: (date: Date) => Promise<{ startOfDaySale: Date | null, endOfDaySale: Date | null }>; // Update this type
@@ -103,7 +103,7 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return `${day}${month}${year}${hour}${minute}${second}`;
   };
 
-  const handleCashPayment = async (cashReceived: number) => {
+  const handleCashPayment = async (cashReceived: number, userEmail: string) => {
     const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
     if (cashReceived < totalAmount) {
       alert(`Insufficient cash. Total amount is ${totalAmount.toFixed(2)}, but received only ${cashReceived.toFixed(2)}.`);
@@ -120,6 +120,7 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         isDeleted: false,
         change: cashReceived - totalAmount,
         orderId: generateOrderId(), //
+        email: userEmail
       };
       const transactionId = await addTransaction(transactionData);
       const newTransaction: Transaction = { ...transactionData, id: transactionId }; // Create full Transact
@@ -132,7 +133,7 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const handleCardPayment = async (paymentMethod: string) => {
+  const handleCardPayment = async (paymentMethod: string, userEmail: string) => {
     const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
     try {
       const transactionData: Omit<Transaction, 'id'> = {
@@ -143,6 +144,7 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         isDeleted: false,
         change: 0, // No change for card payment
         orderId: generateOrderId(), //
+        email: userEmail
       };
       const transactionId = await addTransaction(transactionData);
       const newTransaction: Transaction = { ...transactionData, id: transactionId }; // Create full Transact
