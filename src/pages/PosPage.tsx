@@ -4,6 +4,7 @@ import Modal from '../components/Modal';
 import NavBar from 'components/NavBar';
 import Loading from '../components/Loading'; // Import Loading component
 import { usePos } from 'context/PosContext';
+import { useAuth } from 'context/AuthContext';
 import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
 import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 import { Product } from 'types';
@@ -26,6 +27,7 @@ const PosPage: React.FC = () => {
     savedTransaction,
   } = usePos();
 
+  const { user } = useAuth();
   const [cashReceived, setCashReceived] = useState(0);
   const [showCashModal, setShowCashModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
@@ -55,7 +57,7 @@ const PosPage: React.FC = () => {
       if (paymentMethod === 'Cash') {
         setShowCashModal(true);
       } else if (paymentMethod === 'Card' || paymentMethod === 'Guest') {
-        await handleCardPayment(paymentMethod);
+        handleCardPayment(paymentMethod, user?.email || 'admin@gmail.com');
         setShowTransactionModal(true);
       }
     } catch (error) {
@@ -66,7 +68,7 @@ const PosPage: React.FC = () => {
 
   const handleCashTransaction = async () => {
     setLoading(true);
-    await handleCashPayment(cashReceived);
+    handleCashPayment(cashReceived, user?.email || 'admin@gmail.com');
     setShowCashModal(false);
     setShowTransactionModal(true);
     setLoading(false);
