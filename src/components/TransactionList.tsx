@@ -33,16 +33,19 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
   // Handle CSV Export
   const handleExportCSV = () => {
-    const csvData = transactions.map((transaction) => ({
-      OrderID: transaction.orderId,
-      Date: new Date(transaction.date.toMillis()).toLocaleString('en-GB', {
-        dateStyle: 'short',
-        timeStyle: 'medium',
-      }),
-      ItemsCount: transaction.items.length,
-      Items: transaction.items.map((item) => item.name).join(', '), 
-      TotalAmount: transaction.totalAmount.toFixed(2),
-    }));
+    const csvData = transactions.flatMap((transaction) =>
+      transaction.items.map((item) => ({
+        OrderID: transaction.orderId,
+        Date: new Date(transaction.date.toMillis()).toLocaleString('en-GB', {
+          dateStyle: 'short',
+          timeStyle: 'medium',
+        }),
+        Item: item.name,
+        ItemPrice: item.price.toFixed(2),
+        TotalAmount: transaction.totalAmount.toFixed(2),
+        UserEmail: transaction.email
+      }))
+    );    
 
     const csv = Papa.unparse(csvData);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
