@@ -33,6 +33,10 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
   // Handle CSV Export
   const handleExportCSV = () => {
+    const today = new Date().toLocaleString('en-GB', {
+      dateStyle: 'short',
+    });
+
     const csvData = transactions.flatMap((transaction) =>
       transaction.items.map((item) => ({
         OrderID: transaction.orderId,
@@ -52,7 +56,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'transactions.csv');
+    link.setAttribute('download', `Transactions-${today}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
