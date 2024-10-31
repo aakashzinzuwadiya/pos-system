@@ -7,7 +7,6 @@ import { AuthProvider } from './context/AuthContext';
 import { PosProvider } from 'context/PosContext';
 
 const rootElement = document.getElementById('root');
-
 if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
