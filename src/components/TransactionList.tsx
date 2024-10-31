@@ -47,6 +47,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
         Item: item.name,
         ItemPrice: item.price.toFixed(2),
         TotalAmount: transaction.totalAmount.toFixed(2),
+        PaymentMethod: transaction.PaymentMethod,
         UserEmail: transaction.email
       }))
     );    
