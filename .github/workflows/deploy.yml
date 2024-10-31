@@ -11,12 +11,12 @@ jobs:
 
     steps:
     - name: Check out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3  # Updated to v3, compatible with Node 16
 
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3  # Updated to v3, compatible with Node 16
       with:
-        node-version: '16'  # Use the Node.js version your project requires
+        node-version: '16'  # Confirmed Node.js version to use
 
     - name: Install dependencies
       run: npm install
