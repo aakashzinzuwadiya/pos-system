@@ -49,12 +49,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
         ItemQuantity: item.quantity, // New quantity field
         ItemTotal: (item.price * item.quantity).toFixed(2), // New item total field
         TotalAmount: transaction.totalAmount.toFixed(2),
-<<<<<<< HEAD
-        UserEmail: transaction.email,
-=======
         PaymentMethod: transaction.paymentMethod,
         UserEmail: transaction.email
->>>>>>> 3b862114b47e782f4f3edabbdcc2d6c44d3598ba
       }))
     );
     
