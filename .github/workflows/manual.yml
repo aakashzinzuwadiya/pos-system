@@ -1,0 +1,31 @@
+name: Manual Deploy
+
+# Controls when the action will run. This workflow runs when manually triggered using the UI or API.
+on:
+  workflow_dispatch:
+    # Optional inputs you can define for the deployment, like target branch
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        default: 'master'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'  # Use Node 20, or '18' if compatibility issues
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run deploy
+      run: npm run deploy
