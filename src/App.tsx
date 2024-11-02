@@ -23,8 +23,7 @@ const App: React.FC = () => {
       <Route path="/admin" element={user && isAdmin ? <AdminPage /> : <Navigate to="/login" />} />
       <Route path="/pos" element={<PosPage />} />
       <Route path="/transactions" element={<TransactionPage />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="reports" element={<Reports />}>
+      <Route path="/reports" element={<Reports />}>
         <Route path="sales-summary" element={<SalesSummary filterDates={{
           startDate: '',
           endDate: ''
