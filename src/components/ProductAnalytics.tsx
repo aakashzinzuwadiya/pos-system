@@ -9,7 +9,7 @@ interface ProductAnalyticsProps {
 
 const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ filterDates }) => {
   const { getProductAnalytics } = usePos();
-    const [openTables, setOpenTables] = useState<{ [date: string]: boolean }>({});
+  const [openTables, setOpenTables] = useState<{ [date: string]: boolean }>({});
   const [filteredDataByDate, setFilteredDataByDate] = useState<{ [date: string]: ProductAnalyticsType[] }>({});
   const currencySymbol = process.env.REACT_APP_CURRENCY_SYMBOL || '$';
 
@@ -31,12 +31,15 @@ const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ filterDates }) => {
     const today = new Date().toLocaleString('en-GB', {
       dateStyle: 'short',
     });
-    const csvData = Object.values(filteredDataByDate).flat().map((product) => ({
-      Date: product.date ? product.date.toLocaleDateString('en-GB') : 'N/A',
-      ProductName: product.productName,
-      TotalQuantitySold: product.totalQuantitySold,
-      TotalRevenue: product.totalRevenue.toFixed(2),
-    }));
+
+    const csvData = Object.entries(filteredDataByDate).flatMap(([date, products]) =>
+      products.map((product) => ({
+        Date: date, // Set the date for each product entry
+        ProductName: product.productName,
+        TotalQuantitySold: product.totalQuantitySold,
+        TotalRevenue: product.totalRevenue.toFixed(2),
+      }))
+    );
 
     const csv = Papa.unparse(csvData);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -49,6 +52,7 @@ const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ filterDates }) => {
     link.click();
     document.body.removeChild(link);
   };
+
 
   const toggleTable = (date: string) => {
     setOpenTables((prevOpenTables) => ({
