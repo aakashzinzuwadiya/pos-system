@@ -24,7 +24,9 @@ interface PosContextProps {
   handleDeleteTransaction: (id: string) => Promise<void>;
   getProductAnalytics: (date: Date) => ProductAnalyticsType[];
   getDaySalesTimestamps: (date: Date) => Promise<{ startOfDaySale: Date | null, endOfDaySale: Date | null }>; // Update this type
+  getSalesSummary: (date: Date) => { Cash: number; Card: number; Guest: number }; // Add this line
 }
+
 
 // Create context
 const PosContext = createContext<PosContextProps | undefined>(undefined);
@@ -214,7 +216,6 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return analytics;
   };
 
-
   const getDaySalesTimestamps = async (date: Date): Promise<{ startOfDaySale: Date | null, endOfDaySale: Date | null }> => {
     // Create start and end times for the given date
     const startOfDay = new Date(date);
@@ -244,6 +245,33 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return { startOfDaySale, endOfDaySale };
   };
   
+  const getSalesSummary = (date: Date): { Cash: number; Card: number; Guest: number } => {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+  
+    // Initialize totals for each payment method
+    const totals = { Cash: 0, Card: 0, Guest: 0 };
+  
+    // Loop through transactions and accumulate totals based on payment method
+    transactions.forEach((transaction) => {
+      const transactionDate = new Date(transaction.date.toMillis());
+  
+      if (transactionDate >= startOfDay && transactionDate <= endOfDay) {
+        if (transaction.paymentMethod === 'Cash') {
+          totals.Cash += transaction.totalAmount;
+        } else if (transaction.paymentMethod === 'Card') {
+          totals.Card += transaction.totalAmount;
+        } else if (transaction.paymentMethod === 'Guest') {
+          totals.Guest += transaction.totalAmount;
+        }
+      }
+    });
+  
+    return totals;
+  };
+  
 
   return (
     <PosContext.Provider
@@ -266,6 +294,7 @@ export const PosProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         handleDeleteTransaction, // Provide the delete handler in context
         getProductAnalytics,
         getDaySalesTimestamps,
+        getSalesSummary,
       }}
     >
       {children}

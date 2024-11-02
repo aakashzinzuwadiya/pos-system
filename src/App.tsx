@@ -8,6 +8,9 @@ import PosPage from './pages/PosPage';
 import TransactionPage from 'pages/TransactionPage';
 import ProductAnalytics from 'components/ProductAnalytics';
 import UserManagement from 'components/UserManagement';
+import Reports from 'components/Reports';
+import SalesSummary from 'components/SalesSummary';
+// import ProductSaleSummary from 'components/ProductSaleSummary';
 
 const App: React.FC = () => {
   const { user, loading, isAdmin } = useAuth();
@@ -20,8 +23,18 @@ const App: React.FC = () => {
       <Route path="/admin" element={user && isAdmin ? <AdminPage /> : <Navigate to="/login" />} />
       <Route path="/pos" element={<PosPage />} />
       <Route path="/transactions" element={<TransactionPage />} />
-      <Route path="/analytics" element={<ProductAnalytics />} />
-      <Route path='/users' element={<UserManagement/>} />
+      <Route path="/reports" element={<Reports />} />
+      <Route path="reports" element={<Reports />}>
+        <Route path="sales-summary" element={<SalesSummary filterDates={{
+          startDate: '',
+          endDate: ''
+        }} />} />
+        <Route path="product-analytics" element={<ProductAnalytics filterDates={{
+          startDate: '',
+          endDate: ''
+        }} />} />
+      </Route>
+      <Route path='/users' element={<UserManagement />} />
       <Route path="*" element={<Navigate to={user ? (isAdmin ? '/admin' : '/pos') : '/login'} />} />
     </Routes>
   );

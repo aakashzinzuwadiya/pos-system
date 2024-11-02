@@ -51,10 +51,10 @@ const NavBar: React.FC = () => {
         return 'POS';
       case '/transactions':
         return 'Transactions';
-      case '/analytics':
+      case '/reports':
         return 'Reports';
-      // case '/users':
-      //   return 'Users';
+      case '/users':
+        return 'Users';
       case '/':
         return 'Home';
       default:
@@ -147,7 +147,7 @@ const NavBar: React.FC = () => {
                 className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
                 onClick={() => {
                   setIsOpen(false);
-                  navigate('/analytics');
+                  navigate('/reports');
                 }}
               >
                 Reports
