@@ -1,46 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { getUsers, addUser, updateUser, deleteUser, updateUserPassword } from '../firebaseService'; // Ensure updateUserPassword is implemented in firebaseService
-import { User } from '../types';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPen, faTrash, faKey } from '@fortawesome/free-solid-svg-icons';
-import Modal from './Modal';
+import axios from 'axios';
 import NavBar from './NavBar';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from 'firebaseConfig';
+import Modal from './Modal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPen, faKey, faTrash, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 type UserRole = 'admin' | 'user';
+
+interface User {
+    id: string;
+    email: string;
+    role: UserRole;
+}
 
 const UserManagement: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [editingUser, setEditingUser] = useState<User | null>(null);
-    const [selectedUserForPassword, setSelectedUserForPassword] = useState<User | null>(null); // Track selected user for password update
+    const [selectedUserForPassword, setSelectedUserForPassword] = useState<User | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false); // Track password modal visibility
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [newUserEmail, setNewUserEmail] = useState('');
-    const [newUserRole, setNewUserRole] = useState<UserRole>('user');
     const [newUserPassword, setNewUserPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [newUserRole, setNewUserRole] = useState<UserRole>('user');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showChangePassword, setShowChangePassword] = useState(false);
+    const [showChangeConfirmPassword, setShowChangeConfirmPassword] = useState(false);
+
+    const fetchUsers = async () => {
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_API_URL}/users`);
+            setUsers(response.data as User[]);
+        } catch (error) {
+            console.error('There was an error fetching the users!', error);
+        }
+    };
 
     useEffect(() => {
-        const fetchUsers = async () => {
-            const usersList = await getUsers();
-            setUsers(usersList);
-        };
         fetchUsers();
     }, []);
-
-    // Function to open password update modal
-    const handleOpenPasswordModal = (user: User) => {
-        setSelectedUserForPassword(user); // Set the user whose password is being updated
-        setIsPasswordModalOpen(true); // Open the modal
-    };
-
-    const handleClosePasswordModal = () => {
-        setSelectedUserForPassword(null); // Reset selected user
-        setIsPasswordModalOpen(false); // Close the modal
-    };
 
     const handleAddUser = async () => {
         if (!newUserEmail || !newUserPassword || !confirmPassword) {
@@ -54,18 +53,21 @@ const UserManagement: React.FC = () => {
         }
 
         try {
-            // Create the new user in Firebase Authentication
-            const userCredential = await createUserWithEmailAndPassword(auth, newUserEmail, newUserPassword);
-            const firebaseUser = userCredential.user;
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/users/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: newUserEmail, password: newUserPassword, role: newUserRole }),
+            });
 
-            // Add the new user to Firestore (or wherever you store your user details)
-            const newUser: Omit<User, 'id'> = {
-                email: newUserEmail,
-                role: newUserRole,
-            };
+            if (!response.ok) {
+                throw new Error('Failed to add user');
+            }
 
-            await addUser({ id: firebaseUser.uid, ...newUser });
-
+            const newUser = await response.json();
+            setUsers([...users, newUser]);
+            await fetchUsers();
             resetForm();
             setIsModalOpen(false);
         } catch (error) {
@@ -73,19 +75,24 @@ const UserManagement: React.FC = () => {
         }
     };
 
-    const handleEditUser = (user: User) => {
-        setEditingUser(user);
-        setNewUserEmail(user.email);
-        setNewUserRole(user.role);
-        setIsModalOpen(true);
-    };
-
     const handleUpdateUser = async () => {
         if (!editingUser) return;
         try {
             const updatedUser: Omit<User, 'id'> = { email: newUserEmail, role: newUserRole };
-            await updateUser(editingUser.id, updatedUser);
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/users/${editingUser.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedUser),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update user');
+            }
+
             setUsers(users.map((user) => (user.id === editingUser.id ? { id: editingUser.id, ...updatedUser } : user)));
+            await fetchUsers();
             resetForm();
             setIsModalOpen(false);
         } catch (error) {
@@ -93,62 +100,115 @@ const UserManagement: React.FC = () => {
         }
     };
 
-    const handleDeleteUser = async (id: string) => {
+    const handleDeleteUser = async (id: string, email: string) => {
+        const confirmed = window.confirm(`Do you really want to delete user: ${email} ?`);
+        if (!confirmed) return;
         try {
-            await deleteUser(id);
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/users/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete user');
+            }
+
             setUsers(users.filter((user) => user.id !== id));
+            await fetchUsers();
         } catch (error) {
             console.error('Failed to delete user:', error);
         }
     };
 
+    const handleEditUser = (user: User) => {
+        setEditingUser(user);
+        setNewUserEmail(user.email);
+        setNewUserRole(user.role);
+        setNewUserPassword('');
+        setConfirmPassword('');
+        setShowPassword(false);
+        setShowConfirmPassword(false);
+        setIsModalOpen(true);
+    };
+
+    const handleOpenPasswordModal = (user: User) => {
+        setSelectedUserForPassword(user);
+        setNewUserPassword('');
+        setConfirmPassword('');
+        setShowChangePassword(false);
+        setShowChangeConfirmPassword(false);
+        setIsPasswordModalOpen(true);
+    };
+
+    const handleClosePasswordModal = () => {
+        setIsPasswordModalOpen(false);
+        setShowChangePassword(false);
+        setShowChangeConfirmPassword(false);
+    };
+
     const handleChangePassword = async () => {
-        if (!selectedUserForPassword || !newPassword || !confirmNewPassword) {
+        if (!selectedUserForPassword || !newUserPassword || !confirmPassword) {
             alert('Please fill in all fields.');
             return;
         }
 
-        if (newPassword !== confirmNewPassword) {
+        if (newUserPassword !== confirmPassword) {
             alert('Passwords do not match.');
             return;
         }
 
         try {
-            await updateUserPassword(selectedUserForPassword.id, newPassword);
-            alert('Password updated successfully!');
-            handleClosePasswordModal();
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}/users/${selectedUserForPassword.id}/password`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ newPassword: newUserPassword }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to update password');
+            }
+
+            await fetchUsers();
+            setIsPasswordModalOpen(false);
+            resetForm();
         } catch (error) {
             console.error('Failed to update password:', error);
         }
     };
 
     const resetForm = () => {
-        setEditingUser(null);
         setNewUserEmail('');
-        setNewUserRole('user');
         setNewUserPassword('');
         setConfirmPassword('');
-    };
-
-    const handleOpenModal = () => {
-        resetForm();
-        setIsModalOpen(true);
+        setNewUserRole('user');
+        setEditingUser(null);
+        setSelectedUserForPassword(null);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setEditingUser(null);
+    };
+
+    const handleOpenModal = () => {
+        resetForm();
+        setShowPassword(false);
+        setShowConfirmPassword(false);
+        setIsModalOpen(true);
     };
 
     return (
         <>
             <NavBar />
-            <div className="w-full h-full p-4 bg-white border border-gray-300 rounded-lg shadow-md flex flex-col">
+            <div className="flex flex-col bg-white shadow-md p-4 border border-gray-300 rounded-lg w-full h-full">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold text-primary">Users</h2>
+                    <h2 className="font-semibold text-primary text-lg">Users</h2>
                     <button
                         onClick={handleOpenModal}
-                        className="bg-green-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600"
+                        className="bg-green-500 hover:bg-green-600 shadow-md px-4 py-2 rounded-lg text-white"
                     >
                         Add User
                     </button>
@@ -156,46 +216,51 @@ const UserManagement: React.FC = () => {
 
                 {/* User Table */}
                 <div className="flex-grow overflow-y-auto">
-                    <table className="w-full bg-white rounded-lg border-collapse">
+                    <table className="bg-white rounded-lg w-full border-collapse">
                         <thead>
-                            <tr className="bg-gray-200 text-gray-700 text-left font-semibold">
+                            <tr className="bg-gray-200 font-semibold text-gray-700 text-left">
+                                <th className="px-4 py-2 border-b">ID</th>
                                 <th className="px-4 py-2 border-b">Email</th>
                                 <th className="px-4 py-2 border-b">Role</th>
-                                {/* <th className="px-4 py-2 border-b text-center">Actions</th> */}
+                                <th className="px-4 py-2 border-b text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {users.length === 0 ? (
                                 <tr>
-                                    <td colSpan={3} className="text-center py-4">
+                                    <td colSpan={4} className="py-4 text-center">
                                         No users available.
                                     </td>
                                 </tr>
                             ) : (
                                 users.map((user) => (
-                                    <tr key={user.id} className="border-b hover:bg-gray-100">
+                                    <tr key={user.id} className="hover:bg-gray-100 border-b">
+                                        <td className="px-4 py-2">{user.id}</td>
                                         <td className="px-4 py-2">{user.email}</td>
                                         <td className="px-4 py-2">{user.role}</td>
-                                        {/* <td className="px-4 py-2 text-center space-x-2">
+                                        <td className="space-x-2 px-4 py-2 text-center">
                                             <button
+                                                title="Edit User"
                                                 onClick={() => handleEditUser(user)}
-                                                className="px-2 py-1 bg-blue-500 text-white rounded-md shadow-md mx-1 hover:bg-blue-600"
+                                                className="bg-blue-500 hover:bg-blue-600 shadow-md mx-1 px-2 py-1 rounded-md text-white"
                                             >
                                                 <FontAwesomeIcon icon={faPen} />
                                             </button>
                                             <button
+                                                title="Change Password"
                                                 onClick={() => handleOpenPasswordModal(user)}
-                                                className="px-2 py-1 bg-yellow-500 text-white rounded-md shadow-md mx-1 hover:bg-yellow-600"
+                                                className="bg-yellow-500 hover:bg-yellow-600 shadow-md mx-1 px-2 py-1 rounded-md text-white"
                                             >
                                                 <FontAwesomeIcon icon={faKey} />
                                             </button>
                                             <button
-                                                onClick={() => handleDeleteUser(user.id)}
-                                                className="px-2 py-1 bg-red-500 text-white rounded-md shadow-md mx-1 hover:bg-red-600"
+                                                title="Delete User"
+                                                onClick={() => handleDeleteUser(user.id, user.email)}
+                                                className="bg-red-500 hover:bg-red-600 shadow-md mx-1 px-2 py-1 rounded-md text-white"
                                             >
                                                 <FontAwesomeIcon icon={faTrash} />
                                             </button>
-                                        </td> */}
+                                        </td>
                                     </tr>
                                 ))
                             )}
@@ -207,43 +272,61 @@ const UserManagement: React.FC = () => {
             {/* Modal for Adding/Editing User */}
             <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingUser ? 'Edit User' : 'Add User'}>
                 <div className="p-4">
-                    <label className="block text-sm font-medium mb-2">Email</label>
+                    <label className="block mb-2 font-medium text-sm">Email</label>
                     <input
                         type="email"
                         value={newUserEmail}
                         onChange={(e) => setNewUserEmail(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                        className="mb-4 p-2 border border-gray-300 rounded-md w-full"
+                        disabled={!!editingUser}
                     />
-                    <label className="block text-sm font-medium mb-2">Role</label>
+                    <label className="block mb-2 font-medium text-sm">Role</label>
                     <select
                         value={newUserRole}
                         onChange={(e) => setNewUserRole(e.target.value as UserRole)}
-                        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                        className="mb-4 p-2 border border-gray-300 rounded-md w-full"
                     >
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
                     </select>
+                    {/* Only show password fields when adding a user */}
                     {!editingUser && (
                         <>
-                            <label className="block text-sm font-medium mb-2">Password</label>
-                            <input
-                                type="password"
-                                value={newUserPassword}
-                                onChange={(e) => setNewUserPassword(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                            />
-                            <label className="block text-sm font-medium mb-2">Confirm Password</label>
-                            <input
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                            />
+                            <label className="block mb-2 font-medium text-sm">Password</label>
+                            <div className="relative mb-4">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={newUserPassword}
+                                    onChange={(e) => setNewUserPassword(e.target.value)}
+                                    className="p-2 pr-10 border border-gray-300 rounded-md w-full"
+                                />
+                                <span
+                                    className="top-2 right-2 absolute text-gray-500 cursor-pointer"
+                                    onClick={() => setShowPassword((prev) => !prev)}
+                                >
+                                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                                </span>
+                            </div>
+                            <label className="block mb-2 font-medium text-sm">Confirm Password</label>
+                            <div className="relative mb-4">
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="p-2 pr-10 border border-gray-300 rounded-md w-full"
+                                />
+                                <span
+                                    className="top-2 right-2 absolute text-gray-500 cursor-pointer"
+                                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                >
+                                    <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                                </span>
+                            </div>
                         </>
                     )}
                     <button
                         onClick={editingUser ? handleUpdateUser : handleAddUser}
-                        className="w-full bg-green-500 text-white py-2 rounded-md shadow-md hover:bg-green-600 transition"
+                        className="bg-green-500 hover:bg-green-600 shadow-md py-2 rounded-md w-full text-white transition"
                     >
                         {editingUser ? 'Update User' : 'Add User'}
                     </button>
@@ -253,23 +336,39 @@ const UserManagement: React.FC = () => {
             {/* Modal for Changing Password */}
             <Modal isOpen={isPasswordModalOpen} onClose={handleClosePasswordModal} title="Change Password">
                 <div className="p-4">
-                    <label className="block text-sm font-medium mb-2">New Password</label>
-                    <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                    />
-                    <label className="block text-sm font-medium mb-2">Confirm New Password</label>
-                    <input
-                        type="password"
-                        value={confirmNewPassword}
-                        onChange={(e) => setConfirmNewPassword(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                    />
+                    <label className="block mb-2 font-medium text-sm">New Password</label>
+                    <div className="relative mb-4">
+                        <input
+                            type={showChangePassword ? "text" : "password"}
+                            value={newUserPassword}
+                            onChange={(e) => setNewUserPassword(e.target.value)}
+                            className="p-2 pr-10 border border-gray-300 rounded-md w-full"
+                        />
+                        <span
+                            className="top-2 right-2 absolute text-gray-500 cursor-pointer"
+                            onClick={() => setShowChangePassword((prev) => !prev)}
+                        >
+                            <FontAwesomeIcon icon={showChangePassword ? faEyeSlash : faEye} />
+                        </span>
+                    </div>
+                    <label className="block mb-2 font-medium text-sm">Confirm Password</label>
+                    <div className="relative mb-4">
+                        <input
+                            type={showChangeConfirmPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className="p-2 pr-10 border border-gray-300 rounded-md w-full"
+                        />
+                        <span
+                            className="top-2 right-2 absolute text-gray-500 cursor-pointer"
+                            onClick={() => setShowChangeConfirmPassword((prev) => !prev)}
+                        >
+                            <FontAwesomeIcon icon={showChangeConfirmPassword ? faEyeSlash : faEye} />
+                        </span>
+                    </div>
                     <button
                         onClick={handleChangePassword}
-                        className="w-full bg-green-500 text-white py-2 rounded-md shadow-md hover:bg-green-600 transition"
+                        className="bg-yellow-500 hover:bg-yellow-600 shadow-md py-2 rounded-md w-full text-white transition"
                     >
                         Change Password
                     </button>

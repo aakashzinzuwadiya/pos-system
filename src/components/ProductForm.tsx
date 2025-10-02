@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 
 interface ProductFormProps {
-  onSave: (product: Omit<Product, 'id'>) => void; // Use the same Product type, without the `id` since it's auto-generated
+  onSave: (product: Product) => void; // Use the same Product type, without the `id` since it's auto-generated
   editingProduct: Product | null;
 }
 
@@ -16,9 +16,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
   // Update the form when editingProduct changes
   useEffect(() => {
     if (editingProduct) {
-      setName(editingProduct.name);
-      setPrice(editingProduct.price.toString());
-      setCategory(editingProduct.category);
+      setName(name || editingProduct.name);
+      setPrice(price || editingProduct.price.toString());
+      setCategory(category || editingProduct.category);
     }
   }, [editingProduct]);
 
@@ -30,7 +30,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
       return;
     }
 
-    const productData = { name, price: parseFloat(price), category }; // Include category in the product data
+    const productData = { id: editingProduct?.id || '', name, price: parseFloat(price), category }; // Include id, category, and quantity in the product data
     onSave(productData); // Pass product data to parent component
 
     // Reset the form if not in edit mode
@@ -50,7 +50,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter product name"
-          className="w-full p-2 border border-gray-300 rounded"
+          className="p-2 border border-gray-300 rounded w-full"
         />
       </div>
       <div className="mb-4">
@@ -60,7 +60,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           placeholder="Enter product price"
-          className="w-full p-2 border border-gray-300 rounded"
+          className="p-2 border border-gray-300 rounded w-full"
         />
       </div>
       <div className="mb-4">
@@ -68,7 +68,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value as 'Food' | 'Beverages' | 'Desserts')}
-          className="w-full p-2 border border-gray-300 rounded"
+          className="p-2 border border-gray-300 rounded w-full"
         >
           {/* Generate category options dynamically */}
           {categories.map((cat) => (
@@ -80,7 +80,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
       </div>
       <button
         onClick={handleSubmit}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+        className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded text-white transition"
       >
         {editingProduct ? 'Update Product' : 'Add Product'}
       </button>

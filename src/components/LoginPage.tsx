@@ -1,25 +1,44 @@
-// src/pages/LoginPage.tsx
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-
-import { auth } from '../firebaseConfig';
-import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import Loading from './Loading';
-
 import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { loading } = useAuth(); // Get user, loading, and isAdmin from context
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.status === 404) {
+        throw new Error('Endpoint not found. Please check the server URL.');
+      }
+
+      if (!response.ok) {
+        // Try to get error message from backend
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to login. Please check your credentials.');
+      }
+
+      const data = await response.json();
+      navigate('/dashboard');
+
     } catch (err) {
-      setError('Failed to login. Please check your credentials.');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to login. Please check your credentials.');
+      }
       console.error(err);
     }
   };
@@ -27,11 +46,11 @@ const LoginPage: React.FC = () => {
   return (
     <>
       {/* Show Loading Indicator if loading is true */}
-      {loading && <Loading />}
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="w-full max-w-md p-8 space-y-6 bg-white shadow-lg rounded-lg">
-          <h1 className="text-2xl font-bold text-center text-gray-800">Login</h1>
-          {error && <p className="text-center text-red-500">{error}</p>}
+      {/* {loading && <Loading />} */}
+      <div className="flex justify-center items-center bg-gray-100 min-h-screen">
+        <div className="space-y-6 bg-white shadow-lg p-8 rounded-lg w-full max-w-md">
+          <h1 className="font-bold text-gray-800 text-2xl text-center">Login</h1>
+          {error && <p className="text-red-500 text-center">{error}</p>}
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-gray-700">
@@ -43,7 +62,7 @@ const LoginPage: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
-                className="w-full px-4 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                 required />
             </div>
             <div>
@@ -56,18 +75,19 @@ const LoginPage: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
-                className="w-full px-4 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                 required />
             </div>
             <button
               type="submit"
-              className="w-full px-4 py-2 text-white bg-blue-500 rounded-md shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out"
+              className="bg-blue-500 hover:bg-blue-600 shadow px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full text-white transition duration-150 ease-in-out"
             >
               Login
             </button>
           </form>
         </div>
-      </div></>
+      </div>
+    </>
   );
 };
 

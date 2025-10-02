@@ -1,29 +1,46 @@
-// src/pages/TransactionPage.tsx
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import TransactionList from '../components/TransactionList';
 import TransactionDetailsModal from '../components/TransactionDetailsModal';
-import { usePos } from '../context/PosContext';
-import { useAuth } from '../context/AuthContext';
 import NavBar from '../components/NavBar';
 import { Transaction } from '../types';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const TransactionPage: React.FC = () => {
-  const { transactions, fetchTransactions, handleDeleteTransaction } = usePos();
-  const { isAdmin } = useAuth();
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null); // State to store selected transaction for modal
-  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false); // Assuming you have a way to determine if the user is an admin
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await axios.get<Transaction[]>('/api/transactions');
+      setTransactions(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch transactions.');
+    }
+  };
+
+  const handleDeleteTransaction = async (transactionId: any) => {
+    try {
+      await axios.delete(`/api/transactions/${transactionId}`);
+      setTransactions((prevTransactions) => prevTransactions.filter((transaction) => transaction.id !== transactionId));
+      toast.success('Transaction deleted successfully.');
+    } catch (error) {
+      toast.error('Failed to delete transaction.');
+    }
+  };
 
   useEffect(() => {
     fetchTransactions();
   }, []);
 
-  // Function to handle showing transaction details in the modal
   const handleShowTransaction = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setIsModalOpen(true);
   };
 
-  // Function to handle closing the modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedTransaction(null);
@@ -31,29 +48,25 @@ const TransactionPage: React.FC = () => {
 
   return (
     <>
+      <ToastContainer />
       <NavBar />
-      {/* Outer Container */}
-      <div className="h-screen w-screen pt-[1%] pb-[5%]">
-        {/* Flex container for layout control */}
-        <div className="h-full w-full flex flex-col items-center justify-center overflow-hidden">
-          {/* Transaction List Container with scroll */}
-          <div className="w-full max-w-screen-lg h-full flex flex-col overflow-hidden">
-            <div className="flex-grow overflow-y-auto p-4">
+      <div className="pt-[1%] pb-[5%] w-screen h-screen">
+        <div className="flex flex-col justify-center items-center w-full h-full overflow-hidden">
+          <div className="flex flex-col w-full max-w-screen-lg h-full overflow-hidden">
+            <div className="flex-grow p-4 overflow-y-auto">
               <TransactionList
                 transactions={transactions}
-                onShow={handleShowTransaction} // Pass the show function to the TransactionList
-                onDelete={isAdmin ? handleDeleteTransaction : undefined} // Only show delete for admin
-                showExport={isAdmin} // Show export button only for admin users
+                onShow={handleShowTransaction}
+                onDelete={isAdmin ? handleDeleteTransaction : undefined}
+                showExport={isAdmin}
               />
             </div>
           </div>
         </div>
-
-        {/* Transaction Details Modal */}
         <TransactionDetailsModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          transaction={selectedTransaction} // Pass the selected transaction to the modal
+          transaction={selectedTransaction}
         />
       </div>
     </>

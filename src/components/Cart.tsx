@@ -12,6 +12,13 @@ interface CartItem {
   quantity: number;
 }
 
+// interface CartProps {
+//   cartItems: CartItem[];
+//   onIncrease: (id: string) => void; // Update `id` to `string`
+//   onDecrease: (id: string) => void; // Update `id` to `string`
+//   onRemove: (id: string) => void;   // Update `id` to `string`
+// }
+
 interface CartProps {
   cartItems: CartItem[];
   onIncrease: (id: string) => void; // Update `id` to `string`
@@ -23,9 +30,9 @@ const Cart: React.FC<CartProps> = ({ cartItems, onIncrease, onDecrease, onRemove
   const currencySymbol = process.env.REACT_APP_CURRENCY_SYMBOL || '$';
 
   return (
-    <div className="w-full h-full flex flex-col border border-gray-300 rounded-lg shadow-md bg-white">
+    <div className="flex flex-col bg-white shadow-md border border-gray-300 rounded-lg w-full h-full">
       {/* Headers Row */}
-      <div className="grid grid-cols-6 gap-4 p-2 font-semibold text-gray-700 bg-gray-100 border-b border-gray-300">
+      <div className="gap-4 grid grid-cols-6 bg-gray-100 p-2 border-gray-300 border-b font-semibold text-gray-700">
         <div className="col-span-2">Item</div>
         <div className="text-center">Quantity</div>
         <div className="text-center">Price</div>
@@ -34,15 +41,15 @@ const Cart: React.FC<CartProps> = ({ cartItems, onIncrease, onDecrease, onRemove
       </div>
 
       {/* Cart Items List - Scrollable Section */}
-      <div className="flex-grow overflow-y-auto p-4">
+      <div className="flex-grow p-4 overflow-y-auto">
         {cartItems.length === 0 ? (
-          <p className="text-center text-gray-600">Your cart is empty.</p>
+          <p className="text-gray-600 text-center">Your cart is empty.</p>
         ) : (
           <ul className="space-y-2">
             {cartItems.map((item) => (
               <li
                 key={item.id}
-                className="grid grid-cols-6 gap-4 items-center bg-gray-50 p-2 rounded-md shadow-sm"
+                className="items-center gap-4 grid grid-cols-6 bg-gray-50 shadow-sm p-2 rounded-md"
               >
                 {/* Item Name */}
                 <div className="col-span-2">
@@ -50,17 +57,17 @@ const Cart: React.FC<CartProps> = ({ cartItems, onIncrease, onDecrease, onRemove
                 </div>
 
                 {/* Quantity */}
-                <div className="text-center text-gray-600">
+                <div className="text-gray-600 text-center">
                   {item.quantity}
                 </div>
 
                 {/* Price */}
-                <div className="text-center text-gray-800">
-                  {currencySymbol}{item.price.toFixed(2)}
+                <div className="text-gray-800 text-center">
+                  {currencySymbol}{item.price}
                 </div>
 
                 {/* Total Price (Quantity x Price) */}
-                <div className="text-center text-gray-800 font-semibold">
+                <div className="font-semibold text-gray-800 text-center">
                   {currencySymbol}{(item.price * item.quantity).toFixed(2)}
                 </div>
 
@@ -68,19 +75,19 @@ const Cart: React.FC<CartProps> = ({ cartItems, onIncrease, onDecrease, onRemove
                 <div className="flex justify-center items-center space-x-2">
                   <button
                     onClick={() => onIncrease(item.id)}
-                    className="px-2 py-1 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition"
+                    className="bg-green-500 hover:bg-green-600 shadow px-2 py-1 rounded-md text-white transition"
                   >
                     +
                   </button>
                   <button
                     onClick={() => onDecrease(item.id)}
-                    className="px-2 py-1 bg-red-500 text-white rounded-md shadow hover:bg-red-600 transition"
+                    className="bg-red-500 hover:bg-red-600 shadow px-2 py-1 rounded-md text-white transition"
                   >
                     -
                   </button>
                   <button
                     onClick={() => onRemove(item.id)}
-                    className="px-2 py-1 bg-gray-500 text-white rounded-md shadow hover:bg-gray-600 transition"
+                    className="bg-gray-500 hover:bg-gray-600 shadow px-2 py-1 rounded-md text-white transition"
                   >
                     <FontAwesomeIcon icon={faTrash} />
                   </button>

@@ -26,13 +26,13 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
   const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
-    <div className="w-full h-full p-4 bg-white border border-gray-300 rounded-lg shadow-md flex flex-col">
+    <div className="flex flex-col bg-white shadow-md p-4 border border-gray-300 rounded-lg w-full h-full">
       {/* Title and Add Product Button */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-primary mb-4 sm:mb-0">Product List</h2>
+      <div className="flex sm:flex-row flex-col justify-between items-center mb-4">
+        <h2 className="mb-4 sm:mb-0 font-semibold text-primary text-lg">Product List</h2>
         <button
           onClick={onAddProduct}
-          className="flex items-center px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
+          className="flex items-center bg-green-500 hover:bg-green-600 shadow-md px-4 py-2 rounded-md text-white transition"
         >
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
           Add Product
@@ -40,23 +40,23 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
       </div>
 
       {/* Headers Row */}
-      <div className="hidden md:grid grid-cols-5 gap-4 p-2 font-semibold text-gray-700 bg-gray-100 border-b border-gray-300">
+      <div className="hidden gap-4 md:grid grid-cols-5 bg-gray-100 p-2 border-gray-300 border-b font-semibold text-gray-700">
         <div>Product</div>
         <div>Category</div>
         <div className="text-center">Price ({currencySymbol})</div>
-        <div className="text-center col-span-2">Actions</div>
+        <div className="col-span-2 text-center">Actions</div>
       </div>
 
       {/* Product Items List */}
-      <div className="flex-grow overflow-y-auto mb-4">
+      <div className="flex-grow mb-4 overflow-y-auto">
         {products.length === 0 ? (
-          <p className="text-center flex-grow">No products available.</p>
+          <p className="flex-grow text-center">No products available.</p>
         ) : (
           <ul className="space-y-2">
             {currentProducts.map((product) => (
               <li
                 key={product.id}
-                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 items-center bg-gray-50 p-4 rounded-md shadow-sm hover:shadow-md transition duration-200"
+                className="items-center gap-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 bg-gray-50 shadow-sm hover:shadow-md p-4 rounded-md transition duration-200"
               >
                 {/* Product Name */}
                 <div className="font-medium text-gray-800">{product.name}</div>
@@ -65,19 +65,19 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
                 <div className="font-medium text-gray-600 md:text-center">{product.category}</div>
 
                 {/* Product Price */}
-                <div className="text-center text-gray-800">{`${currencySymbol}${product.price.toFixed(2)}`}</div>
+                <div className="text-gray-800 text-center">{`${currencySymbol}${product.price}`}</div>
 
                 {/* Actions */}
                 <div className="flex justify-center items-center space-x-2 col-span-1 md:col-span-2">
                   <button
                     onClick={() => onEdit(product)}
-                    className="px-3 py-1 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 transition"
+                    className="bg-blue-500 hover:bg-blue-600 shadow px-3 py-1 rounded-md text-white transition"
                   >
                     <FontAwesomeIcon icon={faPen} />
                   </button>
                   <button
                     onClick={() => onDelete(product.id)}
-                    className="px-3 py-1 bg-red-500 text-white rounded-md shadow hover:bg-red-600 transition"
+                    className="bg-red-500 hover:bg-red-600 shadow px-3 py-1 rounded-md text-white transition"
                   >
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
@@ -100,17 +100,17 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md shadow-md hover:bg-gray-400 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gray-300 hover:bg-gray-400 disabled:opacity-50 shadow-md px-4 py-2 rounded-md text-gray-800 transition duration-150 disabled:cursor-not-allowed"
           >
             Previous
           </button>
-          <span className="font-semibold text-gray-700">
+          <span className="py-2 font-semibold text-gray-700">
             Page {currentPage} of {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md shadow-md hover:bg-gray-400 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gray-300 hover:bg-gray-400 disabled:opacity-50 shadow-md px-4 py-2 rounded-md text-gray-800 transition duration-150 disabled:cursor-not-allowed"
           >
             Next
           </button>

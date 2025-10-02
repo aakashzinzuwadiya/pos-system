@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { usePos } from 'context/PosContext';
+import axios from 'axios';
 import { ProductAnalyticsType } from 'types';
 import Papa from 'papaparse';
 
@@ -7,37 +7,63 @@ interface ProductAnalyticsProps {
   filterDates: { startDate: string; endDate: string };
 }
 
+const getTodayDateString = () => {
+  const today = new Date();
+  return today.toISOString().slice(0, 10);
+};
+
+const clampToToday = (dateStr: string) => {
+  const todayStr = getTodayDateString();
+  return dateStr > todayStr ? todayStr : dateStr;
+};
+
 const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ filterDates }) => {
-  const { getProductAnalytics } = usePos();
   const [openTables, setOpenTables] = useState<{ [date: string]: boolean }>({});
-  const [filteredDataByDate, setFilteredDataByDate] = useState<{ [date: string]: ProductAnalyticsType[] }>({});
+  const [analyticsData, setAnalyticsData] = useState<
+    { date: string; products: ProductAnalyticsType[] }[]
+  >([]);
   const currencySymbol = process.env.REACT_APP_CURRENCY_SYMBOL || '$';
 
   useEffect(() => {
-    if (filterDates.startDate && filterDates.endDate) {
-      const start = new Date(filterDates.startDate);
-      const end = new Date(filterDates.endDate);
-      const data: { [date: string]: ProductAnalyticsType[] } = {};
+    // Set default dates to today if not provided, and clamp to today if in future
+    let startDate = filterDates.startDate || getTodayDateString();
+    let endDate = filterDates.endDate || getTodayDateString();
 
-      for (let day = start; day <= end; day.setDate(day.getDate() + 1)) {
-        const dateAnalytics = getProductAnalytics(new Date(day));
-        data[day.toISOString().split('T')[0]] = dateAnalytics;
-      }
-      setFilteredDataByDate(data);
+    startDate = clampToToday(startDate);
+    endDate = clampToToday(endDate);
+
+    if (startDate && endDate) {
+      const fetchData = async () => {
+        try {
+          const response = await axios.post<
+            { date: string; products: ProductAnalyticsType[] }[]
+          >(`${process.env.REACT_APP_API_URL}/productanalytics`, { startDate, endDate });
+
+          const sortedData = response.data.sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+
+          setAnalyticsData(sortedData);
+        } catch (error) {
+          console.error('Error fetching product analytics:', error);
+        }
+      };
+
+      fetchData();
     }
-  }, [filterDates, getProductAnalytics]);
+  }, [filterDates]);
 
   const exportData = () => {
     const today = new Date().toLocaleString('en-GB', {
       dateStyle: 'short',
     });
 
-    const csvData = Object.entries(filteredDataByDate).flatMap(([date, products]) =>
+    const csvData = analyticsData.flatMap(({ date, products }) =>
       products.map((product) => ({
-        Date: date, // Set the date for each product entry
+        Date: date,
         ProductName: product.productName,
         TotalQuantitySold: product.totalQuantitySold,
-        TotalRevenue: product.totalRevenue.toFixed(2),
+        TotalRevenue: typeof product.totalRevenue === 'string' ? parseFloat(product.totalRevenue) : product.totalRevenue,
       }))
     );
 
@@ -53,7 +79,6 @@ const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ filterDates }) => {
     document.body.removeChild(link);
   };
 
-
   const toggleTable = (date: string) => {
     setOpenTables((prevOpenTables) => ({
       ...prevOpenTables,
@@ -63,54 +88,50 @@ const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ filterDates }) => {
 
   return (
     <div className="w-full overflow-hidden">
-      {/* Render analytics data */}
       <button id="export-product-analytics" style={{ display: 'none' }} onClick={exportData}></button>
-      {/* Render your Product Analytics table here */}
       <div className="overflow-y-auto">
-        {Object.keys(filteredDataByDate).map((date) => {
-          const dateData = filteredDataByDate[date];
-          const totalRevenue = dateData.reduce((total, item) => total + item.totalRevenue, 0);
+        {analyticsData.map(({ date, products }) => {
+          const totalRevenue = products
+            .reduce((total, item) => total + (typeof item.totalRevenue === 'string' ? parseFloat(item.totalRevenue) : item.totalRevenue), 0)
+            .toFixed(2);
 
           return (
             <div key={date} className="mb-4">
               <div
-                className="cursor-pointer bg-gray-200 p-2 rounded-md flex justify-between items-center"
+                className="flex justify-between items-center bg-gray-200 p-2 rounded-md cursor-pointer"
                 onClick={() => toggleTable(date)}
               >
-                <h3 className="text-lg font-bold text-gray-800">{date}</h3>
+                <h3 className="font-bold text-gray-800 text-lg">{date}</h3>
                 <span>{openTables[date] ? '-' : '+'}</span>
               </div>
 
               {openTables[date] && (
-                <div className="expanded-table-container max-h-60 mt-2 overflow-hidden">
-                  <table className="w-full text-left border border-gray-300 overflow-hidden rounded-md shadow-sm">
-                    <thead className="bg-blue-500 text-white sticky top-0 overflow-hidden">
+                <div className="expanded-table-container mt-2 max-h-60 overflow-hidden">
+                  <table className="shadow-sm border border-gray-300 rounded-md w-full overflow-hidden text-left">
+                    <thead className="top-0 sticky bg-blue-500 overflow-hidden text-white">
                       <tr>
-                        <th className="py-2 px-4 border-r text-right">Product Name</th>
-                        <th className="py-2 px-4 border-r text-right">Price</th>
-                        <th className="py-2 px-4 border-r text-right">Total Quantity Sold</th>
-                        <th className="py-2 px-4 border-r text-right">Total Revenue</th>
+                        <th className="px-4 py-2 border-r text-right">Product Name</th>
+                        <th className="px-4 py-2 border-r text-right">Total Quantity Sold</th>
+                        <th className="px-4 py-2 border-r text-right">Total Revenue</th>
                       </tr>
                     </thead>
                     <tbody className="overflow-y-auto">
-                      {dateData.map((product) => (
-                        <tr key={product.productId} className="hover:bg-gray-100 transition">
-                          <td className="py-2 px-4 border-b text-right">{product.productName}</td>
-                          <td className="py-2 px-4 border-b text-right">
-                            {currencySymbol}{product.price.toFixed(2)}
-                          </td>
-                          <td className="py-2 px-4 border-b text-right">{product.totalQuantitySold}</td>
-                          <td className="py-2 px-4 border-b text-right">
-                            {currencySymbol}{product.totalRevenue.toFixed(2)}
+                      {products.map((product, index) => (
+                        <tr key={index} className="hover:bg-gray-100 transition">
+                          <td className="px-4 py-2 border-b text-right">{product.productName}</td>
+                          <td className="px-4 py-2 border-b text-right">{product.totalQuantitySold}</td>
+                          <td className="px-4 py-2 border-b text-right">
+                            {currencySymbol}
+                            {product.totalRevenue}
                           </td>
                         </tr>
                       ))}
                       <tr className="bg-gray-100 font-bold">
-                        <td className="py-2 px-4 border-t text-right">Total</td>
-                        <td className="py-2 px-4 border-t text-right"></td>
-                        <td className="py-2 px-4 border-t text-right"></td>
-                        <td className="py-2 px-4 border-t text-right">
-                          {currencySymbol}{totalRevenue.toFixed(2)}
+                        <td className="px-4 py-2 border-t text-right">Total</td>
+                        <td className="px-4 py-2 border-t text-right"></td>
+                        <td className="px-4 py-2 border-t text-right">
+                          {currencySymbol}
+                          {totalRevenue}
                         </td>
                       </tr>
                     </tbody>

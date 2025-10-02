@@ -52,6 +52,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ onFilter, onExport }) => {
                         value={startDate}
                         onChange={(e) => handleStartDateChange(e.target.value)}
                         className="p-2 border rounded-md"
+                        max={today}
                     />
                 </div>
                 <div>
@@ -61,19 +62,20 @@ const DateFilter: React.FC<DateFilterProps> = ({ onFilter, onExport }) => {
                         value={endDate}
                         onChange={(e) => handleEndDateChange(e.target.value)}
                         className="p-2 border rounded-md"
+                        max={today}
                     />
                 </div>
-                <div className="flex space-x-2 ml-auto justify-end">
+                <div className="flex justify-end space-x-2 ml-auto">
                     {!error && (
                         <>
                             <button
                                 onClick={() => onFilter(startDate, endDate)}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 transition"
+                                className="bg-blue-500 hover:bg-blue-600 shadow px-4 py-2 rounded-md text-white transition"
                             >
                                 Filter
                             </button><button
                                 onClick={onExport}
-                                className="px-4 py-2 bg-green-500 text-white rounded-md shadow hover:bg-green-600 transition"
+                                className="bg-green-500 hover:bg-green-600 shadow px-4 py-2 rounded-md text-white transition"
                             >
                                 Export CSV
                             </button>
@@ -81,7 +83,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ onFilter, onExport }) => {
                     )}
                     <button
                         onClick={handleReset}
-                        className="px-4 py-2 bg-gray-500 text-white rounded-md shadow hover:bg-gray-600 transition"
+                        className="bg-gray-500 hover:bg-gray-600 shadow px-4 py-2 rounded-md text-white transition"
                     >
                         Reset
                     </button>

@@ -5,18 +5,17 @@ import ProductList from '../components/ProductList';
 import TransactionList from '../components/TransactionList';
 import TransactionDetailsModal from '../components/TransactionDetailsModal';
 import Modal from '../components/Modal';
-import { getProducts, addProduct, updateProduct, deleteProduct, getTransactions, updateTransaction } from '../firebaseService';
+import { getProducts, addProduct, updateProduct, deleteProduct, getTransactions, updateTransaction } from '../services/mysqlService'; // Update import to mysqlService
 import { Product, Transaction } from '../types';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import NavBar from '../components/NavBar';
 import Loading from 'components/Loading';
-import { useAuth } from 'context/AuthContext';
+import UserManagement from '../components/UserManagement';
 
 import './AdminPage.css';
 
 const AdminPage: React.FC = () => {
-  const isAdmin = useAuth();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -26,19 +25,19 @@ const AdminPage: React.FC = () => {
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false); // State for transaction modal
   const [loading, setLoading] = useState(false);
 
-  // Fetch products from Firestore
+  // Fetch products from MySQL
   const fetchProducts = async () => {
     const productsList = await getProducts();
-    setProducts(productsList);
+    setProducts(productsList || []);
   };
 
-  // Fetch transactions from Firestore and sort by date (latest first)
+  // Fetch transactions from MySQL and sort by date (latest first)
   const fetchTransactions = async () => {
     const transactionsList = await getTransactions();
     // Filter out deleted transactions and sort by date in descending order
     const sortedTransactions = transactionsList
       .filter((t) => !t.isDeleted)
-      .sort((a, b) => b.date.toMillis() - a.date.toMillis());
+      .sort((a, b) => new Date(b.date.seconds * 1000).getTime() - new Date(a.date.seconds * 1000).getTime());
     setTransactions(sortedTransactions);
   };
 
@@ -118,12 +117,12 @@ const AdminPage: React.FC = () => {
       <NavBar />
       {/* Show Loading Indicator if loading is true */}
       {loading && <Loading />}
-      <div className="h-screen p-4 flex items-center justify-center bg-admin-page bg-cover bg-center overflow-hidden m-0 mb-5">
+      <div className="flex justify-center items-center bg-admin-page bg-cover bg-center m-0 mb-5 p-4 h-screen overflow-hidden">
         <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
-        <div className="relative z-10 bg-white/90 border border-gray-200 rounded-lg shadow-lg h-full p-4 mb-10 sm:pb-6 lg:pb-10 flex flex-col">
-          <div className="flex flex-col lg:flex-row h-full space-y-4 lg:space-y-0 lg:space-x-4">
-            <div className="w-full lg:w-1/2 flex flex-col overflow-auto">
+        <div className="z-10 relative flex flex-col bg-white/90 shadow-lg mb-10 p-4 sm:pb-6 lg:pb-10 border border-gray-200 rounded-lg h-full">
+          <div className="flex lg:flex-row flex-col lg:space-x-4 space-y-4 lg:space-y-0 h-full">
+            <div className="flex flex-col w-full lg:w-1/2 overflow-auto">
               <ProductList
                 products={products}
                 onEdit={handleEditProduct}
@@ -132,12 +131,14 @@ const AdminPage: React.FC = () => {
               />
             </div>
 
-            <div className="w-full lg:w-1/2 flex flex-col overflow-auto">
+            <div className="flex flex-col w-full lg:w-1/2 overflow-auto">
               <TransactionList
                 transactions={transactions}
                 onShow={handleShowTransaction}
-                onDelete={isAdmin ? handleDeleteTransaction : undefined} // Only show delete for admin
-                showExport={!!isAdmin} // Ensure isAdmin is a boolean using !! (double exclamation)
+                onDelete={handleDeleteTransaction}
+                showExport={true}
+                // onDelete={isAdmin ? handleDeleteTransaction : undefined} // Only show delete for admin
+                // showExport={!!isAdmin} // Ensure isAdmin is a boolean using !! (double exclamation)
               />
             </div>
           </div>
@@ -152,6 +153,7 @@ const AdminPage: React.FC = () => {
             isOpen={isTransactionModalOpen}
             onClose={() => setIsTransactionModalOpen(false)}
           />
+          {/* <UserManagement /> */}
         </div>
       </div>
     </>

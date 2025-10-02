@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { auth } from 'firebaseConfig';
+// import { useAuth } from '../context/AuthContext';
+// import { auth } from 'firebaseConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes, faUser, faSignOutAlt, faClock } from '@fortawesome/free-solid-svg-icons';
 
 const NavBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false); // State to manage drawer visibility
   const [currentTime, setCurrentTime] = useState(''); // State to track current time
-  const { user, isAdmin } = useAuth(); // Get user and admin info from AuthContext
+  // const { user, isAdmin } = useAuth(); // Get user and admin info from AuthContext
   const navigate = useNavigate();
   const location = useLocation(); // Get current route
 
@@ -31,7 +31,7 @@ const NavBar: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await auth.signOut(); // Log out the user
+      // await auth.signOut(); // Log out the user
       navigate('/login'); // Redirect to login page
     } catch (error) {
       console.error('Error logging out:', error);
@@ -63,20 +63,20 @@ const NavBar: React.FC = () => {
   };
 
   return (
-    <nav className="bg-blue-600 text-white px-4 py-3 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
+    <nav className="bg-blue-600 shadow-md px-4 py-3 text-white">
+      <div className="flex justify-between items-center mx-auto container">
         {/* Live Time Display - Left Aligned */}
         <div className="flex items-center">
           <FontAwesomeIcon icon={faClock} className="mr-2" />
           {/* Reserve space using a fixed width for the time, even before it loads */}
-          <span className="text-lg font-semibold" style={{ minWidth: '120px', textAlign: 'left' }}>
+          <span className="font-semibold text-lg" style={{ minWidth: '120px', textAlign: 'left' }}>
             {currentTime || ''}
           </span>
         </div>
 
         {/* Page Name Display - Center Aligned */}
         <div className="flex-grow text-center">
-          <h2 className="text-xl font-semibold">{getPageName()}</h2>
+          <h2 className="font-semibold text-xl">{getPageName()}</h2>
         </div>
 
         {/* Hamburger Menu Icon */}
@@ -95,23 +95,23 @@ const NavBar: React.FC = () => {
         >
           {/* Drawer Header */}
           <div className="flex justify-between items-center p-4 border-b border-blue-700">
-            <h2 className="text-xl font-semibold text-white">Menu</h2>
+            <h2 className="font-semibold text-white text-xl">Menu</h2>
             <button onClick={toggleDrawer} className="text-white">
               <FontAwesomeIcon icon={faTimes} size="lg" />
             </button>
           </div>
 
           {/* User Info at the top of the drawer */}
-          {user && (
-            <div className="p-4 flex items-center border-b border-blue-700">
+          {/* {user && (
+            <div className="flex items-center p-4 border-b border-blue-700">
               <FontAwesomeIcon icon={faUser} className="mr-2" />
               <span className="text-white">{user.email}</span>
             </div>
-          )}
+          )} */}
 
           {/* Drawer Content */}
-          <ul className="flex flex-col p-4 space-y-4">
-            {isAdmin && (
+          <ul className="flex flex-col space-y-4 p-4">
+            {(
               <li
                 className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
                 onClick={() => {
@@ -142,7 +142,7 @@ const NavBar: React.FC = () => {
                 Transactions
               </li>
             )} */}
-            {isAdmin && (
+            {(
               <li
                 className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
                 onClick={() => {
@@ -153,7 +153,7 @@ const NavBar: React.FC = () => {
                 Reports
               </li>
             )}
-            {isAdmin && (
+            { (
               <li
                 className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
                 onClick={() => {

@@ -1,7 +1,6 @@
-// src/components/TransactionDetailsModal.tsx
 import React from 'react';
 import { Transaction } from '../types';
-import Modal from './Modal'; // Assuming you have a Modal component
+import Modal from './Modal'; 
 
 interface TransactionDetailsModalProps {
   transaction: Transaction | null;
@@ -65,13 +64,13 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
         `}
       </style>
       <Modal className="printable" isOpen={isOpen} onClose={onClose} title={transaction?.orderId || 'Order Details'} handleButton={handlePrint} showButton={true}>
-        <div className="printable p-4">
+        <div className="p-4 printable">
           {/* Transaction Items List */}
           <ul className="space-y-2 mt-10">
             {transaction.items.map((item) => (
-              <li key={item.id} className="border-b border-dashed py-2 flex justify-between items-center text-lg font-bold text-gray-800">
-                <span className="flex-1 text-left">{item.name}</span> {/* Name left-aligned */}
-                <span className="flex-1 text-right">{item.quantity}</span> {/* Quantity right-aligned */}
+              <li key={item.id} className="flex justify-between items-center py-2 border-b border-dashed font-bold text-gray-800 text-lg">
+                <span className="flex-1 text-left">{item.name}</span>
+                <span className="flex-1 text-right">{item.quantity}</span>
               </li>
             ))}
           </ul>

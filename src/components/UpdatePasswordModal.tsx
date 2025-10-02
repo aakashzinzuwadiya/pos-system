@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { updateUserPassword } from '../firebaseService'; // Import the Firebase service for updating passwords
+import axios from 'axios';
 import Modal from './Modal'; // Assuming you have a modal component
 
 interface UpdatePasswordModalProps {
@@ -21,8 +21,8 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({ userId, userN
     }
 
     try {
-      // Call the Firebase service to update the password
-      await updateUserPassword(userId, newPassword);
+      // Call the backend API to update the password
+      await axios.put(`/api/users/${userId}/password`, { newPassword });
       setSuccessMessage('Password updated successfully');
       setError('');
     } catch (err) {
@@ -32,31 +32,31 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({ userId, userN
   };
 
   return (
-    <Modal isOpen={true} onClose={onClose} title={`Update Password`}> {/* Show user name in the title */}
+    <Modal isOpen={true} onClose={onClose} title={`Update Password for ${userName}`}> {/* Show user name in the title */}
       <div className="p-4">
         {error && <p className="text-red-500">{error}</p>}
         {successMessage && <p className="text-green-500">{successMessage}</p>}
         
-        <label className="block text-md font-medium mb-4">{userName}</label>
-        <label className="block text-sm font-medium mb-2">New Password</label>
+        <label className="block mb-4 font-medium text-md">{userName}</label>
+        <label className="block mb-2 font-medium text-sm">New Password</label>
         <input
           type="password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-md mb-4"
+          className="mb-4 p-2 border border-gray-300 rounded-md w-full"
         />
 
-        <label className="block text-sm font-medium mb-2">Confirm New Password</label>
+        <label className="block mb-2 font-medium text-sm">Confirm New Password</label>
         <input
           type="password"
           value={confirmNewPassword}
           onChange={(e) => setConfirmNewPassword(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-md mb-4"
+          className="mb-4 p-2 border border-gray-300 rounded-md w-full"
         />
 
         <button
           onClick={handlePasswordUpdate}
-          className="w-full bg-green-500 text-white py-2 rounded-md shadow-md hover:bg-green-600 transition"
+          className="bg-green-500 hover:bg-green-600 shadow-md py-2 rounded-md w-full text-white transition"
         >
           Update Password
         </button>

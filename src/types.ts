@@ -3,16 +3,16 @@ import { Timestamp } from "firebase/firestore";
 export interface Product {
     id: string; // Use 'string' type for Firestore document IDs
     name: string;
-    price: number;
     category: 'Food' | 'Beverages' | 'Desserts';
+    price: number;
+    created_at?: string;
+    updated_at?: string;
 }
 
-export interface CartItem {
-    id: string; // Ensure CartItem has an `id` of type `string`
-    name: string;
-    price: number;
+export interface CartItem extends Product{
     quantity: number;
 }
+
 
 export interface Transaction {
     id: string; // Unique ID for the transaction
