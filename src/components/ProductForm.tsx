@@ -8,6 +8,9 @@ interface ProductFormProps {
 
 const categories = ['Food', 'Beverages', 'Desserts']; // Centralized list of categories
 
+const buttonBase = "p-2 rounded-md transition cursor-pointer font-semibold text-white";
+const buttonHover = "hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600";
+
 const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => {
   const [name, setName] = useState(editingProduct?.name || '');
   const [price, setPrice] = useState<string>(editingProduct ? editingProduct.price.toString() : ''); // Use a string for price to avoid showing 0 initially
@@ -68,22 +71,27 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value as 'Food' | 'Beverages' | 'Desserts')}
-          className="p-2 border border-gray-300 rounded w-full"
+          className={`p-2 border border-gray-300 rounded w-full`}
         >
-          {/* Generate category options dynamically */}
           {categories.map((cat) => (
-            <option key={cat} value={cat}>
+            <option
+              key={cat}
+              value={cat}
+            >
               {cat}
             </option>
           ))}
         </select>
       </div>
-      <button
-        onClick={handleSubmit}
-        className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded text-white transition"
-      >
-        {editingProduct ? 'Update Product' : 'Add Product'}
-      </button>
+      <div className="flex justify-end">
+        <button
+          onClick={handleSubmit}
+          type="submit"
+          className={`${buttonBase} ${buttonHover}`}
+        >
+          {editingProduct ? 'Update' : 'Add'}
+        </button>
+      </div>
     </div>
   );
 };

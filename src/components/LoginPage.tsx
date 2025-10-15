@@ -32,6 +32,9 @@ const LoginPage: React.FC = () => {
       const data = await response.json();
       // Save token to localStorage
       localStorage.setItem('token', data.token);
+      localStorage.setItem('userEmail', data.email);
+      localStorage.setItem('userRole', data.role);
+
       navigate('/pos');
 
     } catch (err) {

@@ -56,7 +56,7 @@ const SalesSummary: React.FC<SalesSummaryProps> = ({ filterDates }) => {
       <button id="export-sales-summary" style={{ display: 'none' }} onClick={exportData}></button>
       <div className="overflow-y-auto">
         <table className="shadow-sm border border-gray-300 rounded-md w-full overflow-hidden text-left">
-          <thead className="bg-blue-500 text-white">
+          <thead className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
             <tr>
               <th className="px-4 py-2 border-r text-right">Date</th>
               <th className="px-4 py-2 border-r text-right">Cash</th>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 // import { useAuth } from '../context/AuthContext';
 // import { auth } from 'firebaseConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -8,7 +8,10 @@ import { faBars, faTimes, faUser, faSignOutAlt, faClock } from '@fortawesome/fre
 const NavBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false); // State to manage drawer visibility
   const [currentTime, setCurrentTime] = useState(''); // State to track current time
-  // const { user, isAdmin } = useAuth(); // Get user and admin info from AuthContext
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  // const { user, isAdmin } = useAuth(); // If you use AuthContext, replace below with context value
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation(); // Get current route
 
@@ -26,13 +29,21 @@ const NavBar: React.FC = () => {
       setCurrentTime(formattedTime);
     }, 1000);
 
-    return () => clearInterval(intervalId); // Cleanup interval on component unmount
+    const email = localStorage.getItem('userEmail');
+    if (email) setUserEmail(email);
+    // Simple admin check (replace with your logic if needed)
+    const adminFlag = localStorage.getItem('userRole');
+    setIsAdmin(adminFlag === 'admin');
+
+    return () => {
+      clearInterval(intervalId); // Cleanup interval on component unmount
+    };
   }, []);
 
   const handleLogout = async () => {
     try {
       // await auth.signOut(); // Log out the user
-      localStorage.removeItem('token');
+      localStorage.clear();
       navigate('/login'); // Redirect to login page
     } catch (error) {
       console.error('Error logging out:', error);
@@ -64,12 +75,11 @@ const NavBar: React.FC = () => {
   };
 
   return (
-    <nav className="bg-blue-600 shadow-md px-4 py-3 text-white">
+    <nav className="bg-gradient-to-br from-indigo-500 to-purple-400 shadow-md px-4 py-3 text-white">
       <div className="flex justify-between items-center mx-auto container">
         {/* Live Time Display - Left Aligned */}
         <div className="flex items-center">
           <FontAwesomeIcon icon={faClock} className="mr-2" />
-          {/* Reserve space using a fixed width for the time, even before it loads */}
           <span className="font-semibold text-lg" style={{ minWidth: '120px', textAlign: 'left' }}>
             {currentTime || ''}
           </span>
@@ -91,11 +101,11 @@ const NavBar: React.FC = () => {
 
         {/* Drawer */}
         <div
-          className={`fixed top-0 right-0 w-64 h-full bg-blue-600 shadow-lg z-50 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          className={`fixed top-0 right-0 w-64 h-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg z-50 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'
             } transition-transform duration-300 ease-in-out`}
         >
           {/* Drawer Header */}
-          <div className="flex justify-between items-center p-4 border-b border-blue-700">
+          <div className="flex justify-between items-center bg-gradient-to-br from-indigo-500 to-purple-600 p-4 border-indigo-700 border-b">
             <h2 className="font-semibold text-white text-xl">Menu</h2>
             <button onClick={toggleDrawer} className="text-white">
               <FontAwesomeIcon icon={faTimes} size="lg" />
@@ -103,18 +113,19 @@ const NavBar: React.FC = () => {
           </div>
 
           {/* User Info at the top of the drawer */}
-          {/* {user && (
-            <div className="flex items-center p-4 border-b border-blue-700">
-              <FontAwesomeIcon icon={faUser} className="mr-2" />
-              <span className="text-white">{user.email}</span>
-            </div>
-          )} */}
+          {userEmail && (
+          <div className="flex items-center mt-4 ml-2 font-semibold text-white text-sm cursor-pointer">
+            <FontAwesomeIcon icon={faUser} className="mr-2" />
+            {userEmail}
+          </div>
+        )}
 
           {/* Drawer Content */}
           <ul className="flex flex-col space-y-4 p-4">
-            {(
+            {isAdmin && (
               <li
-                className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
+                className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"
+                style={{ cursor: 'pointer' }}
                 onClick={() => {
                   setIsOpen(false);
                   navigate('/admin');
@@ -124,7 +135,8 @@ const NavBar: React.FC = () => {
               </li>
             )}
             <li
-              className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
+              className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"
+              style={{ cursor: 'pointer' }}
               onClick={() => {
                 setIsOpen(false);
                 navigate('/pos');
@@ -132,20 +144,10 @@ const NavBar: React.FC = () => {
             >
               POS
             </li>
-            {/* {!isAdmin && (
+            {isAdmin && (
               <li
-                className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
-                onClick={() => {
-                  setIsOpen(false);
-                  navigate('/transactions');
-                }}
-              >
-                Transactions
-              </li>
-            )} */}
-            {(
-              <li
-                className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
+                className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"
+                style={{ cursor: 'pointer' }}
                 onClick={() => {
                   setIsOpen(false);
                   navigate('/reports');
@@ -154,9 +156,10 @@ const NavBar: React.FC = () => {
                 Reports
               </li>
             )}
-            { (
+            {isAdmin && (
               <li
-                className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
+                className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"
+                style={{ cursor: 'pointer' }}
                 onClick={() => {
                   setIsOpen(false);
                   navigate('/users');
@@ -166,7 +169,8 @@ const NavBar: React.FC = () => {
               </li>
             )}
             <li
-              className="hover:bg-blue-700 p-2 rounded-md cursor-pointer"
+              className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"
+              style={{ cursor: 'pointer' }}
               onClick={() => {
                 handleLogout();
                 setIsOpen(false);

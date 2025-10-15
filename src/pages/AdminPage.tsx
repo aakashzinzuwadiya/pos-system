@@ -15,6 +15,9 @@ import UserManagement from '../components/UserManagement';
 
 import './AdminPage.css';
 
+const buttonBase = "p-2 rounded-md transition cursor-pointer font-semibold text-white";
+const buttonHover = "hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600";
+
 const AdminPage: React.FC = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -77,9 +80,8 @@ const AdminPage: React.FC = () => {
   const handleDeleteProduct = async (id: string) => {
     try {
       await deleteProduct(id);
-      setProducts((prev) => prev.filter((product) => product.id !== id));
+      setProducts((prev) => prev.filter((product) => product.id !== id)); // Remove from state immediately
       toast.success('Product deleted successfully!');
-      await fetchProducts(); // Refresh product list
     } catch (error) {
       toast.error('Failed to delete product.');
       console.error("Error deleting product:", error);
@@ -91,10 +93,8 @@ const AdminPage: React.FC = () => {
       const transaction = transactions.find((t) => t.id === id);
       if (transaction) {
         await updateTransaction(id, { is_deleted: true });
-        // Remove the deleted transaction from state immediately
         setTransactions((prev) => prev.filter((t) => t.id !== id));
         toast.success('Transaction deleted successfully!');
-        // No need to await fetchTransactions here, since we already updated state
       }
     } catch (error) {
       toast.error('Failed to delete transaction.');
@@ -121,7 +121,18 @@ const AdminPage: React.FC = () => {
         <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
         <div className="z-10 relative flex flex-col bg-white/90 shadow-lg mb-10 p-4 sm:pb-6 lg:pb-10 border border-gray-200 rounded-lg h-full">
-          <div className="flex lg:flex-row flex-col lg:space-x-4 space-y-4 lg:space-y-0 h-full">
+          <div
+            className={`flex lg:flex-row flex-col lg:space-x-4 space-y-4 lg:space-y-0 h-full ${
+              window.innerWidth < 1024 && window.innerWidth >= 640
+                ? 'max-h-[calc(2*6rem+4rem)]'
+                : ''
+            }`}
+            style={
+              window.innerWidth < 1024 && window.innerWidth >= 640
+                ? { height: 'calc(2 * 6rem + 4rem)', minHeight: '0', overflowY: 'auto' }
+                : {}
+            }
+          >
             <div className="flex flex-col w-full lg:w-1/2 overflow-auto">
               <ProductList
                 products={products}
@@ -137,8 +148,7 @@ const AdminPage: React.FC = () => {
                 onShow={handleShowTransaction}
                 onDelete={handleDeleteTransaction}
                 showExport={true}
-                // onDelete={isAdmin ? handleDeleteTransaction : undefined} // Only show delete for admin
-                // showExport={!!isAdmin} // Ensure isAdmin is a boolean using !! (double exclamation)
+                buttonClass={`${buttonBase} ${buttonHover}`}
               />
             </div>
           </div>
@@ -147,13 +157,12 @@ const AdminPage: React.FC = () => {
             <ProductForm onSave={handleAddProduct} editingProduct={editingProduct} />
           </Modal>
 
-          {/* Transaction Details Modal */}
           <TransactionDetailsModal
             transaction={selectedTransaction}
             isOpen={isTransactionModalOpen}
             onClose={() => setIsTransactionModalOpen(false)}
+            buttonClass={`${buttonBase} ${buttonHover}`}
           />
-          {/* <UserManagement /> */}
         </div>
       </div>
     </>

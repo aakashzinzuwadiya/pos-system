@@ -10,20 +10,24 @@ import SalesSummary from 'components/SalesSummary';
 import ProductAnalytics from 'components/ProductAnalytics';
 
 // Auth wrapper
-const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const RequireAuth: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly }) => {
   const token = localStorage.getItem('token');
+  const isAdmin = localStorage.getItem('userRole') === 'admin';
   const location = useLocation();
   if (!token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  if (adminOnly && !isAdmin) {
+    return <Navigate to="/pos" replace />;
   }
   return <>{children}</>;
 };
 
 const App: React.FC = () => {
   const token = localStorage.getItem('token');
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
   const location = useLocation();
 
-  // Redirect authenticated users away from /login to /pos
   if (token && location.pathname === '/login') {
     return <Navigate to="/pos" replace />;
   }
@@ -34,7 +38,7 @@ const App: React.FC = () => {
       <Route
         path="/admin"
         element={
-          <RequireAuth>
+          <RequireAuth adminOnly={true}>
             <AdminPage />
           </RequireAuth>
         }
@@ -50,7 +54,7 @@ const App: React.FC = () => {
       <Route
         path="/transactions"
         element={
-          <RequireAuth>
+          <RequireAuth adminOnly={true}>
             <TransactionPage />
           </RequireAuth>
         }
@@ -58,7 +62,7 @@ const App: React.FC = () => {
       <Route
         path="/reports"
         element={
-          <RequireAuth>
+          <RequireAuth adminOnly={true}>
             <Reports />
           </RequireAuth>
         }
@@ -75,12 +79,12 @@ const App: React.FC = () => {
       <Route
         path="/users"
         element={
-          <RequireAuth>
+          <RequireAuth adminOnly={true}>
             <UserManagement />
           </RequireAuth>
         }
       />
-      <Route path="*" element={<Navigate to={'/pos'} />} />
+      <Route path="*" element={<Navigate to={isAdmin ? '/admin' : '/pos'} />} />
     </Routes>
   );
 };

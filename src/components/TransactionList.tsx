@@ -4,11 +4,15 @@ import { faEye, faTrash, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { Transaction } from '../types';
 import Papa from 'papaparse'; // Import PapaParse for CSV export
 
+const buttonBase = "p-2 rounded-md transition cursor-pointer font-semibold text-white";
+const buttonHover = "hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600";
+
 interface TransactionListProps {
   transactions: Transaction[];
   onShow: (transaction: Transaction) => void;
   onDelete?: (id: string) => void;
   showExport?: boolean;
+  buttonClass?: string;
 }
 
 const TransactionList: React.FC<TransactionListProps> = ({
@@ -16,6 +20,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
   onShow,
   onDelete,
   showExport,
+  buttonClass = `${buttonBase} ${buttonHover}`,
 }) => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,7 +52,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
   const handleExportCSV = () => {
     const today = new Date().toLocaleString('en-GB', {
       dateStyle: 'short',
-    });   
+    });
 
     const csvData = transactions.flatMap((transaction) =>
       transaction.items.map((item) => {
@@ -89,7 +94,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
         };
       })
     );
-    
+
 
     const csv = Papa.unparse(csvData);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -102,6 +107,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
     document.body.removeChild(link);
   };
 
+  // Always show pagination controls, even for tablet views
   return (
     <div className="flex flex-col bg-white shadow-md p-4 border border-gray-300 rounded-lg w-full h-full">
       {/* Header Section */}
@@ -109,8 +115,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
         <h2 className="font-semibold text-primary text-lg">Transactions List</h2>
         {showExport && (
           <button
+            className={buttonClass}
             onClick={handleExportCSV}
-            className="flex items-center bg-green-500 hover:bg-green-600 shadow-md px-3 py-2 rounded-md text-white transition duration-150"
           >
             <FontAwesomeIcon icon={faDownload} className="mr-2" />
             Export CSV
@@ -146,20 +152,19 @@ const TransactionList: React.FC<TransactionListProps> = ({
                 <div className="text-gray-600 text-center">{transaction.items.length}</div>
 
                 {/* Total Amount */}
-                {showExport && <div className="font-semibold text-green-600 text-center">{`${process.env.REACT_APP_CURRENCY_SYMBOL}${transaction.totalAmount}`}</div>}
+                {showExport && <div className="font-semibold text-blue-600 text-center">{`${process.env.REACT_APP_CURRENCY_SYMBOL}${transaction.totalAmount}`}</div>}
 
                 {/* Actions */}
                 <div className="flex justify-end items-end space-x-2 col-span-2">
                   <button
-                    onClick={() => onShow(transaction)}
-                    className="bg-blue-500 hover:bg-blue-600 shadow-md px-3 py-1 rounded-md text-white transition duration-150"
-                  >
+                    className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 shadow px-3 py-2 rounded-md text-white transition"
+                    onClick={() => onShow(transaction)}                  >
                     <FontAwesomeIcon icon={faEye} />
                   </button>
                   {showExport && onDelete && (
                     <button
                       onClick={() => onDelete(transaction.id)}
-                      className="bg-red-500 hover:bg-red-600 shadow-md px-3 py-1 rounded-md text-white transition duration-150"
+                      className="hover:bg-red-700 bg-gradient-to-br from-red-500 to-red-700 shadow px-3 py-2 rounded-md text-white transition"
                     >
                       <FontAwesomeIcon icon={faTrash} />
                     </button>
@@ -170,20 +175,16 @@ const TransactionList: React.FC<TransactionListProps> = ({
           </ul>
         )}
       </div>
-
       {/* Pagination Controls */}
-      <div className="flex justify-between items-center mt-4">
-        {/* Show total records out of records being shown */}
+      <div className="flex sm:flex-row flex-col justify-between items-center gap-2 mt-4">
         <div className="text-gray-700 text-sm">
           {`Showing ${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, transactions.length)} of ${transactions.length} transactions`}
         </div>
-
-        {/* Pagination Buttons */}
         <div className="flex space-x-4">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="bg-gray-300 hover:bg-gray-400 disabled:opacity-50 shadow-md px-4 py-2 rounded-md text-gray-800 transition duration-150"
+            className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 disabled:opacity-50 shadow-md px-4 py-2 rounded-md text-white transition duration-150 disabled:cursor-not-allowed"
           >
             Previous
           </button>
@@ -193,7 +194,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
           <button
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="bg-gray-300 hover:bg-gray-400 disabled:opacity-50 shadow-md px-4 py-2 rounded-md text-gray-800 transition duration-150"
+            className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 disabled:opacity-50 shadow-md px-4 py-2 rounded-md text-white transition duration-150 disabled:cursor-not-allowed"
           >
             Next
           </button>

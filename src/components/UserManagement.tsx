@@ -208,7 +208,7 @@ const UserManagement: React.FC = () => {
                     <h2 className="font-semibold text-primary text-lg">Users</h2>
                     <button
                         onClick={handleOpenModal}
-                        className="bg-green-500 hover:bg-green-600 shadow-md px-4 py-2 rounded-lg text-white"
+                        className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md px-4 py-2 rounded-lg text-white transition"
                     >
                         Add User
                     </button>
@@ -218,7 +218,7 @@ const UserManagement: React.FC = () => {
                 <div className="flex-grow overflow-y-auto">
                     <table className="bg-white rounded-lg w-full border-collapse">
                         <thead>
-                            <tr className="bg-gray-200 font-semibold text-gray-700 text-left">
+                            <tr className="bg-gradient-to-br from-indigo-500 to-purple-600 font-semibold text-white text-left">
                                 <th className="px-4 py-2 border-b">ID</th>
                                 <th className="px-4 py-2 border-b">Email</th>
                                 <th className="px-4 py-2 border-b">Role</th>
@@ -242,21 +242,21 @@ const UserManagement: React.FC = () => {
                                             <button
                                                 title="Edit User"
                                                 onClick={() => handleEditUser(user)}
-                                                className="bg-blue-500 hover:bg-blue-600 shadow-md mx-1 px-2 py-1 rounded-md text-white"
+                                                className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md mx-1 px-2 py-1 rounded-md text-white transition"
                                             >
                                                 <FontAwesomeIcon icon={faPen} />
                                             </button>
                                             <button
                                                 title="Change Password"
                                                 onClick={() => handleOpenPasswordModal(user)}
-                                                className="bg-yellow-500 hover:bg-yellow-600 shadow-md mx-1 px-2 py-1 rounded-md text-white"
+                                                className="hover:bg-yellow-600 bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-md mx-1 px-2 py-1 rounded-md text-white transition"
                                             >
                                                 <FontAwesomeIcon icon={faKey} />
                                             </button>
                                             <button
                                                 title="Delete User"
                                                 onClick={() => handleDeleteUser(user.id, user.email)}
-                                                className="bg-red-500 hover:bg-red-600 shadow-md mx-1 px-2 py-1 rounded-md text-white"
+                                                className="hover:bg-red-700 bg-gradient-to-br from-red-500 to-red-700 shadow-md mx-1 px-2 py-1 rounded-md text-white transition"
                                             >
                                                 <FontAwesomeIcon icon={faTrash} />
                                             </button>
@@ -326,7 +326,7 @@ const UserManagement: React.FC = () => {
                     )}
                     <button
                         onClick={editingUser ? handleUpdateUser : handleAddUser}
-                        className="bg-green-500 hover:bg-green-600 shadow-md py-2 rounded-md w-full text-white transition"
+                        className={`hover:bg-green-600 bg-gradient-to-br from-green-500 to-green-600 shadow-md py-2 rounded-md w-full text-white transition`}
                     >
                         {editingUser ? 'Update User' : 'Add User'}
                     </button>
@@ -368,7 +368,7 @@ const UserManagement: React.FC = () => {
                     </div>
                     <button
                         onClick={handleChangePassword}
-                        className="bg-yellow-500 hover:bg-yellow-600 shadow-md py-2 rounded-md w-full text-white transition"
+                        className="hover:bg-yellow-600 bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-md py-2 rounded-md w-full text-white transition"
                     >
                         Change Password
                     </button>

@@ -108,7 +108,7 @@ const ProductAnalytics: React.FC<ProductAnalyticsProps> = ({ filterDates }) => {
               {openTables[date] && (
                 <div className="expanded-table-container mt-2 max-h-60 overflow-hidden">
                   <table className="shadow-sm border border-gray-300 rounded-md w-full overflow-hidden text-left">
-                    <thead className="top-0 sticky bg-blue-500 overflow-hidden text-white">
+                    <thead className="top-0 sticky bg-gradient-to-br from-indigo-500 to-purple-600 overflow-hidden text-white">
                       <tr>
                         <th className="px-4 py-2 border-r text-right">Product Name</th>
                         <th className="px-4 py-2 border-r text-right">Total Quantity Sold</th>

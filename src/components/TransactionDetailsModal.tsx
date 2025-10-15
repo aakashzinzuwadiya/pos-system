@@ -6,12 +6,17 @@ interface TransactionDetailsModalProps {
   transaction: Transaction | null;
   isOpen: boolean;
   onClose: () => void;
+  buttonClass?: string;
 }
+
+const buttonBase = "p-2 rounded-md transition cursor-pointer font-semibold text-white";
+const buttonHover = "hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600";
 
 const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
   transaction,
   isOpen,
   onClose,
+  buttonClass = `${buttonBase} ${buttonHover}`,
 }) => {
   const handlePrint = () => {
     window.print();
@@ -63,7 +68,7 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
           }
         `}
       </style>
-      <Modal className="printable" isOpen={isOpen} onClose={onClose} title={transaction?.orderId || 'Order Details'} handleButton={handlePrint} showButton={true}>
+      <Modal isOpen={isOpen} onClose={onClose} title={transaction?.orderId || 'Order Details'}>
         <div className="p-4 printable">
           {/* Transaction Items List */}
           <ul className="space-y-2 mt-10">
@@ -74,6 +79,14 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
               </li>
             ))}
           </ul>
+        </div>
+        <div className="flex justify-end mt-4">
+          <button
+            className={buttonClass}
+            onClick={handlePrint}
+          >
+            Print
+          </button>
         </div>
       </Modal>
     </>
