@@ -23,7 +23,7 @@ export interface Transaction {
     date: Timestamp; // Date of the transaction
     paymentMethod: string; // Add the paymentMethod property
     orderId: string; // Add orderId field
-    isDeleted?: boolean; // New field for soft delete
+    is_deleted?: boolean; // New field for soft delete
     change?: number; // Add the `change` property to the Transaction type
     email: string;
 }

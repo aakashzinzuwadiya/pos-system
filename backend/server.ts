@@ -11,6 +11,8 @@ import salesSummaryRoutes from './routes/salesSummary';
 
 import dbConnection from '../config/databaseconnection';
 
+import { MACHINE_IP } from '../config/constants';
+
 const app = express();
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 
@@ -45,7 +47,7 @@ app.get('/', (req, res) => {
   res.send('Hello, world!');
 });
 
-app.listen(port, '0.0.0.0', () => {
+app.listen(port, MACHINE_IP, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
 

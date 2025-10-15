@@ -25,13 +25,14 @@ const LoginPage: React.FC = () => {
       }
 
       if (!response.ok) {
-        // Try to get error message from backend
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to login. Please check your credentials.');
       }
 
       const data = await response.json();
-      navigate('/dashboard');
+      // Save token to localStorage
+      localStorage.setItem('token', data.token);
+      navigate('/pos');
 
     } catch (err) {
       if (err instanceof Error) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faTrash, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { Transaction } from '../types';
@@ -22,7 +22,19 @@ const TransactionList: React.FC<TransactionListProps> = ({
   const itemsPerPage = 8;
 
   // Calculate the total number of pages
-  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(transactions.length / itemsPerPage));
+
+  // Ensure currentPage is valid when transactions change
+  useEffect(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentTransactions = transactions.slice(indexOfFirstItem, indexOfLastItem);
+
+    // If current page is now empty and not the first page, go to previous page
+    if (currentPage > 1 && currentTransactions.length === 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  }, [transactions, currentPage, itemsPerPage]);
 
   // Get the transactions to display on the current page
   const indexOfLastItem = currentPage * itemsPerPage;

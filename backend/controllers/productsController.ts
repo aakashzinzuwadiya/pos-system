@@ -35,3 +35,14 @@ export const updateProduct = (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to update product' });
   }
 };
+
+export const deleteProduct = (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    dbConnection.query(`DELETE from products WHERE id = ?`, id);
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({ error: 'Failed to delete product' });
+  }
+};

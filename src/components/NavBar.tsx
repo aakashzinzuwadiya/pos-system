@@ -32,6 +32,7 @@ const NavBar: React.FC = () => {
   const handleLogout = async () => {
     try {
       // await auth.signOut(); // Log out the user
+      localStorage.removeItem('token');
       navigate('/login'); // Redirect to login page
     } catch (error) {
       console.error('Error logging out:', error);

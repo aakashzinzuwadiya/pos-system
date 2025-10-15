@@ -36,7 +36,7 @@ const AdminPage: React.FC = () => {
     const transactionsList = await getTransactions();
     // Filter out deleted transactions and sort by date in descending order
     const sortedTransactions = transactionsList
-      .filter((t) => !t.isDeleted)
+      .filter((t) => !t.is_deleted)
       .sort((a, b) => new Date(b.date.seconds * 1000).getTime() - new Date(a.date.seconds * 1000).getTime());
     setTransactions(sortedTransactions);
   };
@@ -79,6 +79,7 @@ const AdminPage: React.FC = () => {
       await deleteProduct(id);
       setProducts((prev) => prev.filter((product) => product.id !== id));
       toast.success('Product deleted successfully!');
+      await fetchProducts(); // Refresh product list
     } catch (error) {
       toast.error('Failed to delete product.');
       console.error("Error deleting product:", error);
@@ -89,12 +90,11 @@ const AdminPage: React.FC = () => {
     try {
       const transaction = transactions.find((t) => t.id === id);
       if (transaction) {
-        await updateTransaction(id, { isDeleted: true });
-        setTransactions((prev) =>
-          prev.map((t) => (t.id === id ? { ...t, isDeleted: true } : t))
-        );
+        await updateTransaction(id, { is_deleted: true });
+        // Remove the deleted transaction from state immediately
+        setTransactions((prev) => prev.filter((t) => t.id !== id));
         toast.success('Transaction deleted successfully!');
-        fetchTransactions();
+        // No need to await fetchTransactions here, since we already updated state
       }
     } catch (error) {
       toast.error('Failed to delete transaction.');

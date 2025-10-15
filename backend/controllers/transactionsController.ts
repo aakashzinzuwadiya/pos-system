@@ -4,7 +4,7 @@ import dbConnection from '../../config/databaseconnection';
 export const getAllTransactions = async (req: Request, res: Response) => {
   try {
     const [transactions]: any = await dbConnection.query(
-      `SELECT id, email, is_deleted as isDeleted, order_id as orderId, payment_method as paymentMethod, total_amount as totalAmount, transaction_date as date, change_amount as changeAmount
+      `SELECT id, email, is_deleted, order_id as orderId, payment_method as paymentMethod, total_amount as totalAmount, transaction_date as date, change_amount as changeAmount
        FROM transactions`
     );
 
@@ -18,7 +18,7 @@ export const getAllTransactions = async (req: Request, res: Response) => {
     );
 
     const transactionsWithItems = transactions.map((transaction: any) => {
-      const transactionItems = items.filter((item: any) => item.transactionId === transaction.id);
+      const transactionItems = items.filter((item: any) => item.transactionId === transaction.id && item.is_deleted !== 1);
       return {
         ...transaction,
         items: transactionItems,
