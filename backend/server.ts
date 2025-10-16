@@ -8,6 +8,7 @@ import userRoutes from './routes/users';
 import paymentRoutes from './routes/payments';
 import productAnalyticsRoutes from './routes/productAnalytics';
 import salesSummaryRoutes from './routes/salesSummary';
+import orderRoutes from './routes/orders';
 
 import dbConnection from '../config/databaseconnection';
 
@@ -42,6 +43,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/productanalytics', productAnalyticsRoutes);
 app.use('/api/salessummary', salesSummaryRoutes);
+app.use('/api/orders', orderRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello, world!');

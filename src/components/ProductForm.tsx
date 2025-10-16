@@ -15,6 +15,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
   const [name, setName] = useState(editingProduct?.name || '');
   const [price, setPrice] = useState<string>(editingProduct ? editingProduct.price.toString() : ''); // Use a string for price to avoid showing 0 initially
   const [category, setCategory] = useState<'Food' | 'Beverages' | 'Desserts'>(editingProduct?.category || 'Food'); // Add category state
+  const [notifyKitchen, setNotifyKitchen] = useState<boolean>(false);
 
   // Update the form when editingProduct changes
   useEffect(() => {
@@ -22,6 +23,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
       setName(name || editingProduct.name);
       setPrice(price || editingProduct.price.toString());
       setCategory(category || editingProduct.category);
+      setNotifyKitchen(notifyKitchen || editingProduct.notifyKitchen || false);
     }
   }, [editingProduct]);
 
@@ -33,7 +35,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
       return;
     }
 
-    const productData = { id: editingProduct?.id || '', name, price: parseFloat(price), category }; // Include id, category, and quantity in the product data
+    const productData = { id: editingProduct?.id || '', name, price: parseFloat(price), category, notifyKitchen }; // Include id, category, and quantity in the product data
     onSave(productData); // Pass product data to parent component
 
     // Reset the form if not in edit mode
@@ -41,6 +43,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
       setName('');
       setPrice('');
       setCategory('Food');
+      setNotifyKitchen(false); 
     }
   };
 
@@ -82,6 +85,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSave, editingProduct }) => 
             </option>
           ))}
         </select>
+      </div>
+      <div className="flex items-center mb-4">
+        <input
+          type="checkbox"
+          id="notifyKitchen"
+          checked={notifyKitchen}
+          onChange={(e) => setNotifyKitchen(e.target.checked)}
+          className="mr-2"
+        />
+        <label htmlFor="notifyKitchen" className="text-gray-700">
+          Notify to kitchen
+        </label>
       </div>
       <div className="flex justify-end">
         <button

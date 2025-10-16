@@ -10,7 +10,9 @@ const NavBar: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(''); // State to track current time
   const [userEmail, setUserEmail] = useState<string | null>(null);
   // const { user, isAdmin } = useAuth(); // If you use AuthContext, replace below with context value
-  const [isAdmin, setIsAdmin] = useState(false);
+  const userRole = localStorage.getItem('userRole');
+  const isAdmin = userRole === 'admin';
+  const isViewOrders = userRole === 'vieworders';
 
   const navigate = useNavigate();
   const location = useLocation(); // Get current route
@@ -31,9 +33,10 @@ const NavBar: React.FC = () => {
 
     const email = localStorage.getItem('userEmail');
     if (email) setUserEmail(email);
-    // Simple admin check (replace with your logic if needed)
-    const adminFlag = localStorage.getItem('userRole');
-    setIsAdmin(adminFlag === 'admin');
+    // Optimize admin and kitchen view checks
+    // const userRole = localStorage.getItem('userRole');
+    // setIsAdmin(userRole === 'admin');
+    // setIsvieworders(userRole === 'vieworders');
 
     return () => {
       clearInterval(intervalId); // Cleanup interval on component unmount
@@ -67,6 +70,8 @@ const NavBar: React.FC = () => {
         return 'Reports';
       case '/users':
         return 'Users';
+      case '/vieworders':
+        return 'Orders';
       case '/':
         return 'Home';
       default:
@@ -134,39 +139,55 @@ const NavBar: React.FC = () => {
                 Admin Dashboard
               </li>
             )}
-            <li
-              className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                setIsOpen(false);
-                navigate('/pos');
-              }}
-            >
-              POS
-            </li>
-            {isAdmin && (
+            {/* Only admin and vieworders can see View Orders */}
+            {(isAdmin || isViewOrders) && (
               <li
                 className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"
                 style={{ cursor: 'pointer' }}
                 onClick={() => {
                   setIsOpen(false);
-                  navigate('/reports');
+                  navigate('/vieworders');
                 }}
               >
-                Reports
+                Orders
+              </li>
+            )}
+            {/* Only admin and user (not vieworders) can see POS */}
+            {(isAdmin || userRole === 'user') && (
+              <li
+                className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate('/pos');
+                }}
+              >
+                POS
               </li>
             )}
             {isAdmin && (
-              <li
-                className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"
-                style={{ cursor: 'pointer' }}
-                onClick={() => {
-                  setIsOpen(false);
-                  navigate('/users');
-                }}
-              >
-                Users
-              </li>
+              <>
+                <li
+                  className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    setIsOpen(false);
+                    navigate('/reports');
+                  }}
+                >
+                  Reports
+                </li>
+                <li
+                  className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    setIsOpen(false);
+                    navigate('/users');
+                  }}
+                >
+                  Users
+                </li>
+              </>
             )}
             <li
               className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md font-semibold text-white transition cursor-pointer"

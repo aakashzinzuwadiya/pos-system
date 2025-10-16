@@ -51,9 +51,10 @@ const LoginPage: React.FC = () => {
     <>
       {/* Show Loading Indicator if loading is true */}
       {/* {loading && <Loading />} */}
-      <div className="flex justify-center items-center bg-gray-100 min-h-screen">
+      <div className="flex justify-center items-center bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen">
         <div className="space-y-6 bg-white shadow-lg p-8 rounded-lg w-full max-w-md">
-          <h1 className="font-bold text-gray-800 text-2xl text-center">Login</h1>
+          <h1 className="mb-4 font-bold text-indigo-700 text-3xl text-center">Welcome to POS System</h1>
+          <h2 className="font-bold text-gray-800 text-2xl text-center">Login</h2>
           {error && <p className="text-red-500 text-center">{error}</p>}
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
@@ -84,7 +85,7 @@ const LoginPage: React.FC = () => {
             </div>
             <button
               type="submit"
-              className="bg-blue-500 hover:bg-blue-600 shadow px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full text-white transition duration-150 ease-in-out"
+              className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 shadow px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full text-white transition duration-150 ease-in-out"
             >
               Login
             </button>

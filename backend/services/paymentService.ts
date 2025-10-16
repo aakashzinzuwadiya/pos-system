@@ -6,6 +6,7 @@ interface CartItem {
   category: string;
   price: number;
   quantity: number;
+  notifyKitchen: boolean;
 }
 
 interface PaymentDetails {
@@ -36,9 +37,9 @@ export const savePayment = async (paymentDetails: PaymentDetails) => {
 
     for (const item of cart) {
       await connection.query(
-        `INSERT INTO transaction_items (transaction_id, category, item_id, name, price, quantity)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [transactionId, item.category, item.id, item.name, item.price, item.quantity]
+        `INSERT INTO transaction_items (transaction_id, category, item_id, name, price, quantity, notifyKitchen)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [transactionId, item.category, item.id, item.name, item.price, item.quantity, item.notifyKitchen]
       );
     }
 

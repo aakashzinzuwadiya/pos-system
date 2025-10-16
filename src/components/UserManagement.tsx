@@ -5,7 +5,7 @@ import Modal from './Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faKey, faTrash, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
-type UserRole = 'admin' | 'user';
+type UserRole = 'admin' | 'user' | 'vieworders';
 
 interface User {
     id: string;
@@ -286,8 +286,9 @@ const UserManagement: React.FC = () => {
                         onChange={(e) => setNewUserRole(e.target.value as UserRole)}
                         className="mb-4 p-2 border border-gray-300 rounded-md w-full"
                     >
-                        <option value="user">User</option>
                         <option value="admin">Admin</option>
+                        <option value="user">User</option>
+                        <option value="vieworders">View Orders</option>
                     </select>
                     {/* Only show password fields when adding a user */}
                     {!editingUser && (

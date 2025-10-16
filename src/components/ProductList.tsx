@@ -64,7 +64,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete, o
                 {/* Product Category */}
                 <div className="font-medium text-gray-600 md:text-center">{product.category}</div>
                 {/* Product Price */}
-                <div className="font-semibold text-blue-600 text-center">{`${currencySymbol}${product.price}`}</div>
+                <div className="font-semibold text-blue-600 text-center">{`${currencySymbol}${Number(product?.price)?.toFixed(2)}`}</div>
                 {/* Actions */}
                 <div className="flex justify-center items-center space-x-2 col-span-1 md:col-span-2">
                   <button

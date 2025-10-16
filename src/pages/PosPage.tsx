@@ -148,6 +148,7 @@ const PosPage: React.FC = () => {
         paymentMethod,
         cart,
         email: userEmail || 'admin@gmail.com',
+        kitchenItems: cart.filter(item => item.notifyKitchen), // send kitchen items
       });
       setSavedTransaction(response.data);
       setShowTransactionModal(true);
@@ -166,6 +167,7 @@ const PosPage: React.FC = () => {
         cart,
         cashReceived,
         email: userEmail || 'admin@gmail.com',
+        kitchenItems: cart.filter(item => item.notifyKitchen),
       });
       setSavedTransaction(response.data);
       setShowCashModal(false);
@@ -295,7 +297,7 @@ const PosPage: React.FC = () => {
             <div className="flex justify-between items-center bg-gradient-to-br from-indigo-500 to-purple-400 px-5 py-4 rounded-t-2xl text-white">
               <h2 className="drop-shadow-sm font-extrabold text-2xl">Order</h2>
               <span className="bg-blue-100 ml-2 px-3 py-1 rounded-full font-semibold text-blue-700 text-sm">
-                {itemCount} items
+                {cart.length} items
               </span>
             </div>
 
