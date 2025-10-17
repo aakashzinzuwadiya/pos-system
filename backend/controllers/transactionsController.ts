@@ -8,7 +8,8 @@ export const getAllTransactions = async (req: Request, res: Response) => {
        FROM transactions`
     );
 
-    const transactionIds = transactions.map((t: any) => t.id);
+    if (transactions && transactions.length > 0) {
+      const transactionIds = transactions.map((t: any) => t.id);
 
     const [items]: any = await dbConnection.query(
       `SELECT transaction_id as transactionId, item_id as id, name, category, price, quantity
@@ -30,6 +31,9 @@ export const getAllTransactions = async (req: Request, res: Response) => {
     });
 
     res.json(transactionsWithItems);
+    } else {
+      res.json([]);
+    }
   } catch (error) {
     console.error('Error fetching transactions:', error);
     res.status(500).json({ error: 'Failed to fetch transactions' });

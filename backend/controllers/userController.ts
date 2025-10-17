@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken'; // Replace with your actual secret
 import dbConnection from '../../config/databaseconnection';
+import { REPLCommand } from 'repl';
 
 const JWT_SECRET = '46e31e08375605d6342387dc2f53651d ';
 
@@ -117,5 +118,24 @@ export const handleUpdateUser = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error updating user role:', error);
     res.status(500).json({ error: 'Failed to update user role' });
+  }
+};
+
+export const hardResetTransactions = async (req: Request, res: Response) => {
+  try {
+    // Reset transactions table
+    await dbConnection.query('DELETE FROM sys.transactions WHERE id > 0');
+    await dbConnection.query('TRUNCATE TABLE sys.transactions');
+    await dbConnection.query('ALTER TABLE sys.transactions AUTO_INCREMENT = 1');
+
+    // Reset transaction_items table
+    await dbConnection.query('DELETE FROM sys.transaction_items WHERE id > 0');
+    await dbConnection.query('TRUNCATE TABLE sys.transaction_items');
+    await dbConnection.query('ALTER TABLE sys.transaction_items AUTO_INCREMENT = 1');
+
+    res.status(200).json({ message: 'Transactions and transaction_items reset successfully' });
+  } catch (error) {
+    console.error('Error resetting transactions:', error);
+    res.status(500).json({ error: 'Failed to reset transactions' });
   }
 };

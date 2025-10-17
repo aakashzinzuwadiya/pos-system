@@ -145,7 +145,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
               >
                 {/* Transaction ID */}
                 <div className="col-span-2 font-medium text-gray-800 truncate">
-                  {transaction.orderId}
+                  {transaction.id}
                 </div>
 
                 {/* Items Count */}

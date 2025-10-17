@@ -200,18 +200,54 @@ const UserManagement: React.FC = () => {
         setIsModalOpen(true);
     };
 
+    const handleHardReset = async () => {
+        const confirmed = window.confirm('Are you sure you want to reset all transactions? This action cannot be undone.');
+        if (!confirmed) return;
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/users/hardReset`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to reset transactions');
+            }
+
+            await fetchUsers();
+            alert('All transactions have been reset.');
+        } catch (error) {
+            console.error('Failed to reset transactions:', error);
+        }
+    };
+
     return (
         <>
             <NavBar />
             <div className="flex flex-col bg-white shadow-md p-4 border border-gray-300 rounded-lg w-full h-full">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="font-semibold text-primary text-lg">Users</h2>
-                    <button
-                        onClick={handleOpenModal}
-                        className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md px-4 py-2 rounded-lg text-white transition"
-                    >
-                        Add User
-                    </button>
+                    <div>
+                        <h2 className="font-semibold text-primary text-lg">Users</h2>
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleOpenModal}
+                                className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md px-4 py-2 rounded-lg text-white transition"
+                            >
+                                Add User
+                            </button>
+                            <button
+                                onClick={handleHardReset}
+                                className="hover:bg-indigo-700 bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md px-4 py-2 rounded-lg text-white transition"
+                            >
+                                Hard Reset
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* User Table */}

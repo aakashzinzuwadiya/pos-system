@@ -70,7 +70,7 @@ const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
       </style>
       <Modal isOpen={isOpen} onClose={onClose} title={'Order Details'}>
         <div className="p-4 printable">
-          <strong>{transaction?.orderId}</strong>
+          <strong>{transaction?.id}</strong>
           {/* Transaction Items List */}
           <ul className="space-y-2 mt-10">
             {transaction.items.map((item) => (
