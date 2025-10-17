@@ -4,24 +4,28 @@ import databaseconnection from '../../config/databaseconnection'; // Ensure this
 // GET /kitchen/orders
 export const getKitchenOrders = async (req: Request, res: Response) => {
   try {
-    // Fetch all kitchen items, including their isReadyInstances array
+    // Fetch all kitchen items, excluding items from deleted transactions, including their isReadyInstances array
     const query = `
       SELECT 
-        ti.id AS id,
-        ti.transaction_id AS orderId,
-        ti.name,
-        ti.quantity,
-        ti.notifyKitchen,
-        ti.isReady,
-        ti.isReadyInstances
+      ti.id AS id,
+      ti.transaction_id AS orderId,
+      ti.name,
+      ti.quantity,
+      ti.notifyKitchen,
+      ti.isReady,
+      ti.isReadyInstances,
+      t.transaction_date AS transactionDate
       FROM transaction_items ti
-      WHERE ti.notifyKitchen = true AND isReady = false
+      JOIN transactions t ON t.id = ti.transaction_id
+      WHERE ti.notifyKitchen = true
+      AND ti.isReady = false
+      AND COALESCE(t.is_deleted, 0) = 0
     `;
     const [rows]: any[] = await databaseconnection.query(query);
 
     // Split each item by quantity for frontend display, and include instanceReady
     const kitchenItems: any[] = [];
-    rows.forEach((row: { id: any; orderId: any; name: any; quantity: any; isReadyInstances: any; }) => {
+    rows.forEach((row: { id: any; orderId: any; name: any; quantity: any; isReadyInstances: any; transactionDate: any; }) => {
       let readyArr: boolean[] = [];
       if (row.isReadyInstances) {
         try {
@@ -39,6 +43,7 @@ export const getKitchenOrders = async (req: Request, res: Response) => {
           name: row.name,
           instanceIndex: i,
           instanceReady: readyArr[i] === true,
+          transactionDate: row?.transactionDate
         });
       }
     });

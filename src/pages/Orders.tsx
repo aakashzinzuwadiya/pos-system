@@ -9,6 +9,7 @@ interface KitchenOrderItem {
   name: string;
   quantity: number;
   instanceIndex?: number;
+  transactionDate?: string;
 }
 
 const POLL_INTERVAL = 5000; // 5 seconds
@@ -96,6 +97,42 @@ const Orders: React.FC = () => {
     }
   };
 
+  // add helper to format date consistently
+  const formatDate = (input: any) => {
+    if (!input) return '';
+    let dt: Date | null = null;
+
+    // Firestore-style object { seconds: number }
+    if (typeof input === 'object' && input !== null && 'seconds' in input) {
+      dt = new Date(Number(input.seconds) * 1000);
+    } else if (typeof input === 'number') {
+      // epoch seconds or ms: assume seconds if 10-digit, ms if 13-digit
+      dt = input.toString().length === 10 ? new Date(input * 1000) : new Date(input);
+    } else if (typeof input === 'string') {
+      let s = input.trim();
+      // handle "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DDTHH:MM:SS"
+      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)) {
+        s = s.replace(' ', 'T');
+      }
+      // try Date parse
+      dt = new Date(s);
+    } else {
+      dt = new Date(String(input));
+    }
+
+    if (!dt || Number.isNaN(dt.getTime())) return String(input);
+
+    const day = String(dt.getDate()).padStart(2, '0');
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const year = dt.getFullYear();
+    const hours24 = dt.getHours();
+    const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+    const minutes = String(dt.getMinutes()).padStart(2, '0');
+    const ampm = hours24 >= 12 ? 'PM' : 'AM';
+
+    return `${day}/${month}/${year} ${hours12}:${minutes} ${ampm}`;
+  };
+
   return (
     <>
       <NavBar />
@@ -113,6 +150,7 @@ const Orders: React.FC = () => {
           <table className="shadow border rounded w-full">
             <thead className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
               <tr>
+                <th className="px-4 py-2 border-r">Date/Time</th>
                 <th className="px-4 py-2 border-r">Order ID</th>
                 <th className="px-4 py-2 border-r">Item Name</th>
                 <th className="px-4 py-2 border-r">Action</th>
@@ -121,11 +159,12 @@ const Orders: React.FC = () => {
             <tbody>
               {currentOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="py-6 text-center">No orders available.</td>
+                  <td colSpan={4} className="py-6 text-center">No orders available.</td>
                 </tr>
               ) : (
                 currentOrders.map((item, idx) => (
                   <tr key={`${item.orderId}-${item.id}-${item.instanceIndex ?? idx}`}>
+                    <td className="px-4 py-2 border-b">{formatDate(item.transactionDate ?? '')}</td>
                     <td className="px-4 py-2 border-b">{item.orderId} - {Number(item?.instanceIndex) + 1}</td>
                     <td className="px-4 py-2 border-b">{item.name}</td>
                     <td className="px-4 py-2 border-b">
